@@ -1,0 +1,28 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: accounts-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/accounts_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:admin}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+http-sms:
+  api-key: ${HTTP_SMS_KEY}
+  phone-number: ${HTTP_SMS_PHONE}
+
+jwt:
+  secret: ${JWT_SECRET:secret_key_placeholder_for_nextbank_digital_platform_2024}
+  expiration: 86400000 # 24 hours
