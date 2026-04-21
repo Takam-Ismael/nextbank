@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "NextBank",
+    "slug": "nextbank",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5A623"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "cm.nextbank.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F5A623"
+      },
+      "package": "cm.nextbank.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-camera",
+      "expo-image-picker",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow NextBank to use Face ID for secure login."
+        }
+      ]
+    ],
+    "scheme": "nextbank",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
