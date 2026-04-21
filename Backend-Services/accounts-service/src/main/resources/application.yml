@@ -5,23 +5,23 @@ spring:
   application:
     name: accounts-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/accounts_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:admin}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/accounts_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
   flyway:
-    enabled: true
+    enabled: false
     baseline-on-migrate: true
 
 http-sms:
-  api-key: ${HTTP_SMS_KEY}
-  phone-number: ${HTTP_SMS_PHONE}
+  api-key: ${HTTP_SMS_KEY:PLACEHOLDER_KEY}
+  phone-number: ${HTTP_SMS_PHONE:PLACEHOLDER_PHONE}
 
 jwt:
   secret: ${JWT_SECRET:secret_key_placeholder_for_nextbank_digital_platform_2024}

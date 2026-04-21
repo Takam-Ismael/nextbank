@@ -1,9 +1,14 @@
 package com.nextbank.accounts.dto;
 
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AdminRegisterRequest {
+
+    @NotBlank(message = "Full name is required")
+    private String fullName;
+
+    @NotBlank(message = "Phone number is required")
+    private String phoneNumber;
 }

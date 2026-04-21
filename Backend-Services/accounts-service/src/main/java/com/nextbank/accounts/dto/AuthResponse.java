@@ -1,9 +1,14 @@
 package com.nextbank.accounts.dto;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class AuthResponse {
+    private String token;
+    private Long id;
+    private String fullName;
+    private String phoneNumber;
+    private String role;
 }
