@@ -55,10 +55,13 @@ import Chart from 'chart.js/auto';
 
       <!-- ── STAT CARDS ─────────────────────────────────────── -->
       <div class="stat-grid">
-        <div class="stat-card" *ngFor="let s of stats">
+        <div class="stat-card" *ngFor="let s of stats; let i = index">
           <div class="stat-top">
-            <div class="stat-icon" [style.background]="s.iconBg + '22'">
-              <span class="stat-icon-inner" [style.background]="s.iconBg">{{ s.icon }}</span>
+            <div class="stat-icon-inner">
+              <i *ngIf="i === 0" class="ph ph-wallet" style="color: #0284c7; font-size: 28px;"></i>
+              <i *ngIf="i === 1" class="ph ph-users-three" style="color: #16a34a; font-size: 28px;"></i>
+              <i *ngIf="i === 2" class="ph ph-arrows-left-right" style="color: #d97706; font-size: 28px;"></i>
+              <i *ngIf="i === 3" class="ph ph-credit-card" style="color: #dc2626; font-size: 28px;"></i>
             </div>
             <span class="stat-change" [class.up]="s.changeUp" [class.down]="!s.changeUp">
               {{ s.change }}
@@ -145,8 +148,10 @@ import Chart from 'chart.js/auto';
           </div>
           <div class="alerts-list">
             <div class="alert-item" *ngFor="let a of alerts">
-              <div class="alert-icon" [class]="'alert-icon-' + a.severity">
-                {{ a.icon }}
+              <div class="alert-icon-wrap" [class]="'sev-' + a.severity">
+                <i *ngIf="a.severity === 'high'" class="ph ph-warning-octagon"></i>
+                <i *ngIf="a.severity === 'medium'" class="ph ph-warning"></i>
+                <i *ngIf="a.severity === 'low'" class="ph ph-info"></i>
               </div>
               <div class="alert-meta">
                 <div class="alert-title">{{ a.title }}</div>
@@ -262,15 +267,24 @@ import Chart from 'chart.js/auto';
       &:hover { box-shadow: var(--shadow-md); }
     }
     .stat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .stat-icon {
-      width: 48px; height: 48px; border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-    }
     .stat-icon-inner {
-      width: 36px; height: 36px; border-radius: 10px;
+      width: 44px; height: 44px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      font-size: 24px;
+      background: none; /* Ensure no background */
+      border: none; /* Ensure no border */
+      box-shadow: none; /* Ensure no shadow */
     }
+    .stat-icon-0 { color: #0284c7; } /* kpi-blue */
+    .stat-icon-1 { color: #16a34a; } /* kpi-green */
+    .stat-icon-2 { color: #d97706; } /* kpi-amber */
+    .stat-icon-3 { color: #dc2626; } /* kpi-red */
+
+    /* Dark mode overrides for stat icons */
+    :host-context([data-theme="dark"]) .stat-icon-0 { color: #38bdf8; }
+    :host-context([data-theme="dark"]) .stat-icon-1 { color: #4ade80; }
+    :host-context([data-theme="dark"]) .stat-icon-2 { color: #fbbf24; }
+    :host-context([data-theme="dark"]) .stat-icon-3 { color: #f87171; }
     .stat-change {
       font-size: 12px; font-weight: 700; padding: 4px 8px;
       border-radius: 20px;
@@ -341,16 +355,6 @@ import Chart from 'chart.js/auto';
     .alerts-badge {
       background: var(--danger-light); color: var(--danger);
       font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
-    }
-    .alerts-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
-    .alert-item { display: flex; align-items: center; gap: 12px; }
-    .alert-icon {
-      width: 40px; height: 40px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
-      &.alert-icon-high   { background: var(--danger-light);  }
-      &.alert-icon-medium { background: var(--warning-light); }
-      &.alert-icon-low    { background: var(--accent-light);  }
     }
     .alert-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
     .alert-info  { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }

@@ -191,11 +191,15 @@
 .stat-icon-inner {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 24px;
+  color: var(--text-primary);
 }
 
 .stat-change {
@@ -328,18 +332,25 @@
 }
 
 .alert-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-.alert-icon-wrap.sev-high   { background: #fee2e2; color: #dc2626; }
-.alert-icon-wrap.sev-medium { background: #fef3c7; color: #d97706; }
-.alert-icon-wrap.sev-low    { background: #f3f4f6; color: #6b7280; }
+.alert-icon-wrap i { 
+  font-size: 24px; 
+}
+
+.alert-icon-wrap.sev-high   { color: #dc2626; }
+.alert-icon-wrap.sev-medium { color: #d97706; }
+.alert-icon-wrap.sev-low    { color: #6b7280; }
 
 .alert-title { font-size: 13px; font-weight: 600; color: #0d1117; }
 .alert-info  { font-size: 11px; color: #9ca3af; margin-top: 1px; }
@@ -455,11 +466,15 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #f3f4f6;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #6b7280;
 }
 
 .ts-val   { font-size: 18px; font-weight: 800; color: #0d1117; margin-bottom: 2px; }
@@ -487,12 +502,12 @@
 [data-theme="dark"] .customers-table tr:hover td { background: var(--bg-card-alt); }
 [data-theme="dark"] .legend-item            { border-color: var(--border-light); }
 [data-theme="dark"] .alert-item             { background: var(--bg-card-alt); border-color: var(--border-light); }
-[data-theme="dark"] .alert-icon-wrap.sev-high   { background: rgba(220,38,38,0.15);   color: #f87171; }
-[data-theme="dark"] .alert-icon-wrap.sev-medium { background: rgba(217,119,6,0.15);   color: #fbbf24; }
-[data-theme="dark"] .alert-icon-wrap.sev-low    { background: rgba(107,114,128,0.15); color: #9ca3af; }
+[data-theme="dark"] .alert-icon-wrap.sev-high   { color: #f87171; }
+[data-theme="dark"] .alert-icon-wrap.sev-medium { color: #fbbf24; }
+[data-theme="dark"] .alert-icon-wrap.sev-low    { color: #9ca3af; }
 [data-theme="dark"] .table-stats-row        { border-color: var(--border); }
 [data-theme="dark"] .table-stat             { border-color: var(--border); }
-[data-theme="dark"] .ts-icon                { background: var(--bg-card-alt); }
+[data-theme="dark"] .ts-icon                { background: none !important; }
 [data-theme="dark"] .period-btn             { border-color: var(--border); color: var(--text-secondary); }
 [data-theme="dark"] .period-btn:hover       { background: var(--bg-card-alt); color: var(--text-primary); }
 [data-theme="dark"] .period-btn.active      { background: #10b981; border-color: #10b981; color: #fff; }

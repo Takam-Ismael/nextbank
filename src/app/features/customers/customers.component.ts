@@ -201,13 +201,13 @@ import { DataService, Customer } from '../../core/services/data.service';
 
     .filters-bar {
       display: flex; align-items: center; gap: 10px;
-      background: #fff; border: 1px solid #e5e7eb;
+      background: var(--bg-card); border: 1px solid var(--border);
       border-radius: 12px; padding: 12px 16px;
     }
     .search-wrap {
       display: flex; align-items: center; gap: 8px;
       flex: 1; max-width: 320px;
-      background: #f9fafb; border: 1px solid #e5e7eb;
+      background: var(--bg-input); border: 1px solid var(--border);
       border-radius: 8px; padding: 0 12px; height: 36px;
       color: #9ca3af;
       &:focus-within { border-color: #3b82f6; }
@@ -227,7 +227,7 @@ import { DataService, Customer } from '../../core/services/data.service';
     }
 
     .table-card {
-      background: #fff; border: 1px solid #e5e7eb;
+      background: var(--bg-card); border: 1px solid var(--border);
       border-radius: 14px; overflow: hidden;
     }
     .data-table {
@@ -237,7 +237,7 @@ import { DataService, Customer } from '../../core/services/data.service';
         font-size: 11px; font-weight: 700; color: #9ca3af;
         text-transform: uppercase; letter-spacing: 0.8px;
         border-bottom: 1px solid #f0f0f0;
-        background: #fff;
+        background: var(--bg-card);
       }
       td {
         padding: 14px 20px; border-bottom: 1px solid #f9fafb;
@@ -376,6 +376,33 @@ import { DataService, Customer } from '../../core/services/data.service';
     }
     .detail-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
     .detail-value { font-size: 14px; font-weight: 600; color: #0d1117; }
+
+    /* Dark mode overrides */
+    :host-context([data-theme="dark"]) .filters-bar { background: var(--bg-card); border-color: var(--border); }
+    :host-context([data-theme="dark"]) .search-wrap { background: var(--bg-input); border-color: var(--border); }
+    :host-context([data-theme="dark"]) .search-input { color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .filter-btn { border-color: var(--border); color: var(--text-secondary); }
+    :host-context([data-theme="dark"]) .filter-btn:hover { background: var(--bg-card-alt); color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .table-card { background: var(--bg-card); border-color: var(--border); }
+    :host-context([data-theme="dark"]) .data-table th { background: var(--bg-card); border-color: var(--border); color: var(--text-tertiary); }
+    :host-context([data-theme="dark"]) .data-table td { border-color: var(--border-light); color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .data-table tr:hover td { background: var(--bg-card-alt); }
+    :host-context([data-theme="dark"]) .cust-name { color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .pagination { border-color: var(--border); }
+    :host-context([data-theme="dark"]) .page-btn { border-color: var(--border); color: var(--text-secondary); }
+    :host-context([data-theme="dark"]) .page-btn:hover:not(:disabled) { background: var(--bg-card-alt); color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .page-info { color: var(--text-secondary); }
+    :host-context([data-theme="dark"]) .status-badge.badge-success { background: rgba(16,185,129,0.15); color: #34d399; }
+    :host-context([data-theme="dark"]) .status-badge.badge-warning { background: rgba(217,119,6,0.15);  color: #fbbf24; }
+    :host-context([data-theme="dark"]) .status-badge.badge-danger  { background: rgba(220,38,38,0.15);  color: #f87171; }
+    :host-context([data-theme="dark"]) .status-badge.badge-review  { background: rgba(37,99,235,0.15);  color: #60a5fa; }
+    :host-context([data-theme="dark"]) .modal { background: var(--bg-card); border-color: var(--border); }
+    :host-context([data-theme="dark"]) .modal-header, [data-theme="dark"] .modal-footer { border-color: var(--border); }
+    :host-context([data-theme="dark"]) .modal-title, [data-theme="dark"] .detail-value { color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .form-group input { background: var(--bg-input); border-color: var(--border); color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .detail-item { border-color: var(--border-light); }
+    :host-context([data-theme="dark"]) .btn-secondary { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    :host-context([data-theme="dark"]) .modal-close { background: var(--bg-card-alt); color: var(--text-secondary); }
   `],
 })
 export class CustomersComponent implements OnInit {
