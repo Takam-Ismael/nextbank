@@ -1,1 +1,216 @@
-﻿
+<div class="dashboard">
+
+  <!-- HERO BANNER -->
+  <div class="hero-banner">
+    <div class="hero-left">
+      <p class="hero-greeting">Good morning, Admin</p>
+      <h1 class="hero-title">Welcome to NextBank HQ</h1>
+      <p class="hero-desc">Your platform is performing exceptionally. Revenue is up 12.5% this month with 3,420 transactions processed.</p>
+      <div class="hero-pills">
+        <div class="hero-pill">
+          <div class="pill-row"><span class="pill-val">24,521</span><span class="pill-change up">+8.2%</span></div>
+          <span class="pill-label">Active Users</span>
+        </div>
+        <div class="hero-pill">
+          <div class="pill-row"><span class="pill-val">385 000 XAF</span><span class="pill-change up">+4.1%</span></div>
+          <span class="pill-label">Avg. Transaction</span>
+        </div>
+        <div class="hero-pill">
+          <div class="pill-row"><span class="pill-val">97.3%</span><span class="pill-change up">+0.8%</span></div>
+          <span class="pill-label">Approval Rate</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <p class="hero-rev-val">142 800 000 XAF</p>
+      <p class="hero-rev-label">Total Revenue · 2024</p>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card" *ngFor="let s of statsEx; let i = index">
+      <div class="stat-top">
+        <div class="stat-icon-inner" [style.background]="s.iconBg">
+          <!-- Total Revenue: Phosphor wallet-fill -->
+          <svg *ngIf="i === 0" width="22" height="22" viewBox="0 0 1024 1024" fill="#fff">
+            <path d="M864 704h-640c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h544c17.673 0 32 14.327 32 32s-14.327 32-32 32v0h-544c-53.019 0-96-42.981-96-96v0-512c0-53.019 42.981-96 96-96v0h640c35.346 0 64 28.654 64 64v0 448c0 35.346-28.654 64-64 64v0zM720 384c-26.51 0-48 21.49-48 48s21.49 48 48 48c26.51 0 48-21.49 48-48v0c0-26.51-21.49-48-48-48v0z"/>
+          </svg>
+          <!-- Active Users: Phosphor users-three-fill -->
+          <svg *ngIf="i === 1" width="22" height="22" viewBox="0 0 1024 1024" fill="#fff">
+            <path d="M628.48 231.72c45.95 35.441 75.26 90.514 75.26 152.433 0 106.039-85.961 192-192 192s-192-85.961-192-192c0-61.919 29.31-116.992 74.813-152.101l0.447-0.331c-57.225-25.212-103.455-66.611-133.986-118.374l-0.734-1.346c-2.695-4.59-4.287-10.109-4.287-16 0-17.673 14.327-32 32-32h448c17.673 0 32 14.327 32 32 0 5.891-1.592 11.41-4.369 16.151l0.082-0.151c-31.328 53.138-77.642 94.544-133.112 118.993l-1.848 0.727zM256.48 368.8c0.013-0.239 0.020-0.519 0.020-0.8 0-8.837-7.163-16-16-16h-176.479c-15.076 0-27.718 10.426-31.107 24.462l-0.045 0.218c-0.469 2.099-0.738 4.509-0.738 6.982 0 7.867 2.72 15.098 7.27 20.805l-0.052-0.067c28.118 37.024 64.717 66.192 106.987 84.876l1.733 0.684c-32.126 29.367-52.2 71.456-52.2 118.234 0 88.366 71.634 160 160 160 79.551 0 145.543-58.057 157.916-134.112l0.124-0.922c0.113-0.71 0.178-1.529 0.178-2.364 0-6.348-3.753-11.819-9.161-14.316l-0.098-0.040c-88.488-41.62-148.669-129.991-148.76-232.428v-0.012c0-5.12 0-10.16 0.48-15.2zM984.48 404.44c-28.057 36.985-64.573 66.135-106.751 84.836l-1.729 0.684c32.126 29.367 52.2 71.456 52.2 118.234 0 88.366-71.634 160-160 160-79.551 0-145.543-58.057-157.916-134.112l-0.124-0.922c-0.113-0.71-0.178-1.529-0.178-2.364 0-6.348 3.753-11.819 9.161-14.316l0.098-0.040c88.488-41.62 148.669-129.991 148.76-232.428v-0.012c0-5.12 0-10.16-0.48-15.2-0.013-0.239-0.020-0.519-0.020-0.8 0-8.837 7.163-16 16-16h176.479c15.076 0 27.718 10.426 31.107 24.462l0.045 0.218c0.472 2.102 0.742 4.517 0.742 6.994 0 7.883-2.737 15.126-7.313 20.831l0.051-0.065z"/>
+          </svg>
+          <!-- Transactions: Phosphor arrows-left-right-fill -->
+          <svg *ngIf="i === 2" width="22" height="22" viewBox="0 0 1024 1024" fill="#fff">
+            <path d="M169.36 617.36c-5.798 5.792-9.385 13.797-9.385 22.64s3.587 16.848 9.385 22.64v0l128 128c5.792 5.798 13.797 9.385 22.64 9.385 17.673 0 32-14.327 32-32v-96h480c17.673 0 32-14.327 32-32s-14.327-32-32-32v0h-480v-96c0-17.673-14.327-32-32-32-8.843 0-16.848 3.587-22.64 9.385v0zM854.64 278.64l-128 128c-5.792 5.798-13.797 9.385-22.64 9.385-17.673 0-32-14.327-32-32v-96h-480c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h480v-96c0-17.673 14.327-32 32-32 8.843 0 16.848 3.587 22.64 9.385v0l128 128c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64v0z"/>
+          </svg>
+          <!-- Active Cards: Phosphor credit-card-fill -->
+          <svg *ngIf="i === 3" width="22" height="22" viewBox="0 0 1024 1024" fill="#fff">
+            <path d="M896 768h-768c-35.346 0-64-28.654-64-64v0-512c0-35.346 28.654-64 64-64v0h768c35.346 0 64 28.654 64 64v0 512c0 35.346-28.654 64-64 64v0zM544 256h-64c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h64c17.673 0 32-14.327 32-32s-14.327-32-32-32v0zM800 256h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c17.673 0 32-14.327 32-32s-14.327-32-32-32v0zM128 608v96h768v-96z"/>
+          </svg>
+        </div>
+        <span class="stat-change" [class.up]="s.changeUp" [class.down]="!s.changeUp">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="s.changeUp ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'"/>
+          </svg>
+          {{ s.change.replace('↑ ','').replace('↓ ','') }}
+        </span>
+      </div>
+      <div class="stat-val">{{ s.value }}</div>
+      <div class="stat-label">{{ s.label }}</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="charts-row">
+    <div class="chart-card revenue-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Revenue Overview</h3>
+          <p class="chart-sub">Monthly revenue trend</p>
+        </div>
+        <div class="period-tabs">
+          <button *ngFor="let p of ['7d','30d','90d','1y']" (click)="revPeriod.set(p)" [class.active]="revPeriod() === p" class="period-btn">{{ p }}</button>
+        </div>
+      </div>
+      <div class="chart-body"><canvas #revenueCanvas></canvas></div>
+    </div>
+
+    <div class="chart-card donut-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Account Types</h3>
+          <p class="chart-sub">Distribution of account types</p>
+        </div>
+      </div>
+      <div class="donut-wrap"><canvas #donutCanvas></canvas></div>
+      <div class="donut-legend">
+        <div class="legend-item" *ngFor="let a of accountTypes">
+          <span class="legend-dot" [style.background]="a.color"></span>
+          <span class="legend-label">{{ a.label }}</span>
+          <span class="legend-val">{{ a.value }}%</span>
+        </div>
+      </div>
+    </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+    <div class="chart-card activity-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Weekly Activity</h3>
+          <p class="chart-sub">Transaction volume by day</p>
+        </div>
+        <button class="more-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+        </button>
+      </div>
+      <div class="chart-body"><canvas #weeklyCanvas></canvas></div>
+      <div class="chart-legend-row">
+        <span class="legend-pill"><span class="lp-dot" style="background:#14b8a6"></span> Deposits</span>
+        <span class="legend-pill"><span class="lp-dot" style="background:#1e3a6e"></span> Withdrawals</span>
+        <span class="legend-pill"><span class="lp-dot" style="background:#f59e0b"></span> Transfers</span>
+      </div>
+    </div>
+
+    <div class="chart-card alerts-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Security Alerts</h3>
+          <p class="chart-sub">Flagged activities</p>
+        </div>
+        <span class="alerts-badge">{{ alerts.length }} New</span>
+      </div>
+      <div class="alerts-list">
+        <div class="alert-item" *ngFor="let a of alerts">
+          <div class="alert-icon-wrap" [class]="'sev-' + a.severity">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path [attr.d]="alertIcon(a.severity)"/>
+            </svg>
+          </div>
+          <div class="alert-meta">
+            <div class="alert-title">{{ a.title }}</div>
+            <div class="alert-info">ID: {{ a.id }} &middot; {{ a.time }}</div>
+          </div>
+        </div>
+      </div>
+      <a class="view-alerts-link" routerLink="/compliance">View all alerts &rsaquo;</a>
+    </div>
+  </div>
+
+  <!-- RECENT CUSTOMERS TABLE -->
+  <div class="chart-card customers-table-card">
+    <div class="table-header">
+      <div>
+        <h3 class="chart-title">Recent Customers</h3>
+        <p class="chart-sub">Newly registered and active customers</p>
+      </div>
+      <a class="view-all-link" routerLink="/customers">View all &rsaquo;</a>
+    </div>
+    <table class="customers-table">
+      <thead>
+        <tr>
+          <th>CUSTOMER</th>
+          <th>STATUS</th>
+          <th>BALANCE</th>
+          <th>JOINED</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of recentCustomers">
+          <td>
+            <div class="cust-cell">
+              <div class="cust-avatar">{{ c.initials }}</div>
+              <div class="cust-info">
+                <div class="cust-name">{{ c.name }}</div>
+                <div class="cust-email">{{ c.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="status-badge" [ngClass]="statusClass(c.status)">{{ c.status }}</span></td>
+          <td class="balance-cell">{{ fmtBalance(c.balance) }}</td>
+          <td class="joined-cell">{{ c.joinedAgo }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Bottom stats row -->
+    <div class="table-stats-row">
+      <div class="table-stat">
+        <div class="ts-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="ts-val">99.98%</div>
+          <div class="ts-label">Platform Uptime · Last 30 days</div>
+        </div>
+      </div>
+      <div class="table-stat">
+        <div class="ts-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+          </svg>
+        </div>
+        <div>
+          <div class="ts-val">68%</div>
+          <div class="ts-label">Mobile Users · Of total traffic</div>
+        </div>
+      </div>
+      <div class="table-stat">
+        <div class="ts-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <div>
+          <div class="ts-val">+23.4%</div>
+          <div class="ts-label">Growth Rate · Month over month</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

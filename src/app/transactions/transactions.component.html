@@ -1,0 +1,524 @@
+<div class="transactions-page">
+
+  <!-- ── PAGE HEADER ──────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Transactions</h1>
+      <p class="page-sub">{{ filtered().length }} transactions found</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportCSV()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export CSV
+      </button>
+      <button class="btn-new" (click)="showNew.set(true)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New Transaction
+      </button>
+    </div>
+  </div>
+
+  <!-- ── KPI STRIP ─────────────────────────────────────── -->
+  <div class="kpi-strip">
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-blue">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+          <polyline points="17 6 23 6 23 12"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-val">{{ kpis.totalVolume }}</span>
+        <span class="kpi-label">Total Volume</span>
+      </div>
+      <span class="kpi-badge up">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+        +14.2%
+      </span>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-green">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-val">{{ kpis.totalDeposits }}</span>
+        <span class="kpi-label">Total Deposits</span>
+      </div>
+      <span class="kpi-badge up">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+        +8.7%
+      </span>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-amber">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 16V4m0 0L3 8m4-4 4 4"/>
+          <path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-val">{{ kpis.totalCount }}</span>
+        <span class="kpi-label">Transactions</span>
+      </div>
+      <span class="kpi-badge up">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+        +3,420
+      </span>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-red">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-val">{{ kpis.flaggedCount }}</span>
+        <span class="kpi-label">Flagged</span>
+      </div>
+      <span class="kpi-badge down">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        +2
+      </span>
+    </div>
+
+  </div>
+
+  <!-- ── CHARTS ROW ─────────────────────────────────────── -->
+  <div class="charts-row">
+
+    <div class="chart-card flow-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Transaction Flow</h3>
+          <p class="chart-sub">Credits vs debits over the last 7 days</p>
+        </div>
+        <div class="period-tabs">
+          <button *ngFor="let p of ['7d','30d','90d']"
+            (click)="flowPeriod.set(p)"
+            [class.active]="flowPeriod() === p"
+            class="period-btn">{{ p }}</button>
+        </div>
+      </div>
+      <div class="chart-body"><canvas #flowCanvas></canvas></div>
+      <div class="chart-legend-row">
+        <span class="legend-pill"><span class="lp-dot" style="background:#10b981"></span> Credits</span>
+        <span class="legend-pill"><span class="lp-dot" style="background:#1e3a6e"></span> Debits</span>
+      </div>
+    </div>
+
+    <div class="chart-card type-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">By Type</h3>
+          <p class="chart-sub">Breakdown of transaction types</p>
+        </div>
+      </div>
+      <div class="donut-wrap"><canvas #typeCanvas></canvas></div>
+      <div class="type-legend">
+        <div class="type-legend-item" *ngFor="let t of txTypes">
+          <span class="tl-dot" [style.background]="t.color"></span>
+          <span class="tl-label">{{ t.label }}</span>
+          <div class="tl-bar-wrap">
+            <div class="tl-bar" [style.width.%]="t.pct" [style.background]="t.color"></div>
+          </div>
+          <span class="tl-val">{{ t.pct }}%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── FILTERS BAR ────────────────────────────────────── -->
+  <div class="filters-card">
+    <div class="filters-row">
+
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" type="text" placeholder="Search reference, customer, description…"
+          [(ngModel)]="searchQuery" (ngModelChange)="currentPage.set(1)"/>
+        <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery = ''; currentPage.set(1)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="filter-chips">
+
+        <div class="chip-group">
+          <button *ngFor="let f of statusFilters"
+            class="chip"
+            [class.active]="activeStatus() === f.val"
+            (click)="setStatus(f.val)">
+            <span class="chip-dot" [style.background]="f.color"></span>
+            {{ f.label }}
+          </button>
+        </div>
+
+        <div class="select-wrap">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          <select [(ngModel)]="activeType" (ngModelChange)="currentPage.set(1)">
+            <option value="">All Types</option>
+            <option value="deposit">Deposit</option>
+            <option value="withdrawal">Withdrawal</option>
+            <option value="transfer">Transfer</option>
+            <option value="payment">Payment</option>
+          </select>
+        </div>
+
+        <div class="select-wrap">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2"/>
+            <line x1="8" y1="6" x2="16" y2="6"/>
+            <line x1="8" y1="10" x2="16" y2="10"/>
+            <line x1="8" y1="14" x2="12" y2="14"/>
+          </svg>
+          <select [(ngModel)]="activeChannel" (ngModelChange)="currentPage.set(1)">
+            <option value="">All Channels</option>
+            <option value="mobile">Mobile</option>
+            <option value="web">Web</option>
+            <option value="atm">ATM</option>
+            <option value="branch">Branch</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="active-filters" *ngIf="hasActiveFilters()">
+      <span class="af-label">Active filters:</span>
+      <span class="af-pill" *ngIf="activeStatus()">
+        Status: {{ activeStatus() }}
+        <button (click)="activeStatus.set('')">×</button>
+      </span>
+      <span class="af-pill" *ngIf="activeType">
+        Type: {{ activeType }}
+        <button (click)="activeType = ''">×</button>
+      </span>
+      <span class="af-pill" *ngIf="activeChannel">
+        Channel: {{ activeChannel }}
+        <button (click)="activeChannel = ''">×</button>
+      </span>
+      <button class="af-clear" (click)="clearFilters()">Clear all</button>
+    </div>
+  </div>
+
+  <!-- ── TRANSACTION TABLE ──────────────────────────────── -->
+  <div class="table-card">
+    <table class="tx-table">
+      <thead>
+        <tr>
+          <th class="th-check">
+            <input type="checkbox" class="custom-check" [checked]="allSelected()" (change)="toggleAll($event)"/>
+          </th>
+          <th class="sortable" (click)="sortBy('reference')">
+            REFERENCE
+            <span class="sort-icon" [class.asc]="sortKey()==='reference' && sortDir()==='asc'" [class.desc]="sortKey()==='reference' && sortDir()==='desc'">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+            </span>
+          </th>
+          <th>CUSTOMER</th>
+          <th>TYPE</th>
+          <th class="sortable" (click)="sortBy('amount')">
+            AMOUNT
+            <span class="sort-icon" [class.asc]="sortKey()==='amount' && sortDir()==='asc'" [class.desc]="sortKey()==='amount' && sortDir()==='desc'">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+            </span>
+          </th>
+          <th>STATUS</th>
+          <th>CHANNEL</th>
+          <th class="sortable" (click)="sortBy('date')">
+            DATE
+            <span class="sort-icon" [class.asc]="sortKey()==='date' && sortDir()==='asc'" [class.desc]="sortKey()==='date' && sortDir()==='desc'">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+            </span>
+          </th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tx of paginated(); trackBy: trackById"
+          [class.selected]="isSelected(tx.id)"
+          [class.row-flagged]="tx.status === 'flagged'">
+
+          <td class="td-check">
+            <input type="checkbox" class="custom-check" [checked]="isSelected(tx.id)" (change)="toggleSelect(tx.id)"/>
+          </td>
+
+          <td class="td-ref">
+            <span class="ref-code">{{ tx.reference }}</span>
+            <span class="ref-desc">{{ tx.description }}</span>
+          </td>
+
+          <td>
+            <div class="cust-cell">
+              <div class="cust-avatar" [style.background]="avatarBg(tx.customerInitials)">{{ tx.customerInitials }}</div>
+              <div>
+                <div class="cust-name">{{ tx.customerName }}</div>
+                <div class="cust-email">{{ tx.customerEmail }}</div>
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <div class="type-cell">
+              <div class="type-icon-wrap" [ngClass]="'type-' + tx.type">
+                <svg *ngIf="tx.type === 'deposit'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M5 12l7 7 7-7"/>
+                </svg>
+                <svg *ngIf="tx.type === 'withdrawal'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 19V5M5 12l7-7 7 7"/>
+                </svg>
+                <svg *ngIf="tx.type === 'transfer'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
+                </svg>
+                <svg *ngIf="tx.type === 'payment'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+              </div>
+              <span class="type-label">{{ tx.type | titlecase }}</span>
+            </div>
+          </td>
+
+          <td>
+            <div class="amount-cell" [class.credit]="tx.direction === 'credit'" [class.debit]="tx.direction === 'debit'">
+              <span class="amount-sign">{{ tx.direction === 'credit' ? '+' : '−' }}</span>
+              <span class="amount-val">{{ fmtAmount(tx.amount) }}</span>
+            </div>
+            <div class="balance-after">bal. {{ fmtAmount(tx.balanceAfter) }}</div>
+          </td>
+
+          <td>
+            <span class="status-badge" [ngClass]="statusClass(tx.status)">
+              <span class="sb-dot"></span>
+              {{ tx.status | titlecase }}
+            </span>
+          </td>
+
+          <td>
+            <div class="channel-cell">
+              <svg *ngIf="tx.channel === 'mobile'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+              </svg>
+              <svg *ngIf="tx.channel === 'web'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <svg *ngIf="tx.channel === 'atm'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+              <svg *ngIf="tx.channel === 'branch'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="9" width="18" height="13" rx="1"/>
+                <path d="M3 9l9-6 9 6"/>
+                <rect x="9" y="13" width="6" height="9"/>
+              </svg>
+              <span class="channel-label">{{ tx.channel | titlecase }}</span>
+            </div>
+          </td>
+
+          <td class="td-date">
+            <div class="date-val">{{ tx.date }}</div>
+            <div class="time-val">{{ tx.time }}</div>
+          </td>
+
+          <td class="td-actions">
+            <button class="action-btn" (click)="viewTx(tx)" title="View details">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+            <button class="action-btn" title="More actions">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+              </svg>
+            </button>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filtered().length === 0">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
+      </svg>
+      <p>No transactions match your filters.</p>
+      <button class="btn-ghost" (click)="clearFilters()">Clear filters</button>
+    </div>
+
+    <div class="pagination" *ngIf="filtered().length > 0">
+      <div class="page-left">
+        <span class="page-info">Showing {{ pageStart() }}–{{ pageEnd() }} of {{ filtered().length }}</span>
+        <div class="bulk-actions" *ngIf="selectedIds().size > 0">
+          <span class="bulk-count">{{ selectedIds().size }} selected</span>
+          <button class="bulk-btn" (click)="flagSelected()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+              <line x1="4" y1="22" x2="4" y2="15"/>
+            </svg>
+            Flag
+          </button>
+          <button class="bulk-btn danger" (click)="clearSelection()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button *ngFor="let p of pageNumbers()" class="page-btn" [class.active]="p === currentPage()" (click)="currentPage.set(p)">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DETAIL MODAL ───────────────────────────────────── -->
+  <div class="modal-backdrop" *ngIf="selectedTx()" (click)="selectedTx.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-tx-icon" [ngClass]="'type-' + selectedTx()!.type">
+            <svg *ngIf="selectedTx()!.type === 'deposit'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            <svg *ngIf="selectedTx()!.type === 'withdrawal'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <svg *ngIf="selectedTx()!.type === 'transfer'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+            <svg *ngIf="selectedTx()!.type === 'payment'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <div>
+            <h2 class="modal-title">{{ selectedTx()!.reference }}</h2>
+            <p class="modal-sub">{{ selectedTx()!.description }}</p>
+          </div>
+        </div>
+        <button class="modal-close" (click)="selectedTx.set(null)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-amount-banner" [class.credit]="selectedTx()!.direction === 'credit'" [class.debit]="selectedTx()!.direction === 'debit'">
+        <span class="mab-sign">{{ selectedTx()!.direction === 'credit' ? '+' : '−' }}</span>
+        <span class="mab-val">{{ fmtAmount(selectedTx()!.amount) }} XAF</span>
+        <span class="status-badge" [ngClass]="statusClass(selectedTx()!.status)">
+          <span class="sb-dot"></span>{{ selectedTx()!.status | titlecase }}
+        </span>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">Customer</span><span class="detail-value">{{ selectedTx()!.customerName }}</span></div>
+        <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">{{ selectedTx()!.customerEmail }}</span></div>
+        <div class="detail-item"><span class="detail-label">Type</span><span class="detail-value">{{ selectedTx()!.type | titlecase }}</span></div>
+        <div class="detail-item"><span class="detail-label">Direction</span><span class="detail-value">{{ selectedTx()!.direction | titlecase }}</span></div>
+        <div class="detail-item"><span class="detail-label">Channel</span><span class="detail-value">{{ selectedTx()!.channel | titlecase }}</span></div>
+        <div class="detail-item"><span class="detail-label">Balance After</span><span class="detail-value">{{ fmtAmount(selectedTx()!.balanceAfter) }} XAF</span></div>
+        <div class="detail-item"><span class="detail-label">Date</span><span class="detail-value">{{ selectedTx()!.date }}</span></div>
+        <div class="detail-item"><span class="detail-label">Time</span><span class="detail-value">{{ selectedTx()!.time }}</span></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-flag" (click)="flagTx(selectedTx()!); selectedTx.set(null)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+            <line x1="4" y1="22" x2="4" y2="15"/>
+          </svg>
+          {{ selectedTx()!.status === 'flagged' ? 'Unflag' : 'Flag' }}
+        </button>
+        <button class="btn-secondary" (click)="selectedTx.set(null)">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NEW TRANSACTION MODAL ──────────────────────────── -->
+  <div class="modal-backdrop" *ngIf="showNew()" (click)="showNew.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">New Transaction</h2>
+          <p class="modal-sub">Record a manual transaction</p>
+        </div>
+        <button class="modal-close" (click)="showNew.set(false)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Customer Name *</label>
+            <input type="text" [(ngModel)]="newTx.customerName" placeholder="e.g. Amara Nkosi"/>
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" [(ngModel)]="newTx.email" placeholder="customer@mail.cm"/>
+          </div>
+          <div class="form-group">
+            <label>Type *</label>
+            <select [(ngModel)]="newTx.type">
+              <option value="">Select type</option>
+              <option value="deposit">Deposit</option>
+              <option value="withdrawal">Withdrawal</option>
+              <option value="transfer">Transfer</option>
+              <option value="payment">Payment</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Direction *</label>
+            <select [(ngModel)]="newTx.direction">
+              <option value="">Select direction</option>
+              <option value="credit">Credit</option>
+              <option value="debit">Debit</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount (XAF) *</label>
+            <input type="number" [(ngModel)]="newTx.amount" placeholder="e.g. 500000"/>
+          </div>
+          <div class="form-group">
+            <label>Channel *</label>
+            <select [(ngModel)]="newTx.channel">
+              <option value="">Select channel</option>
+              <option value="mobile">Mobile</option>
+              <option value="web">Web</option>
+              <option value="atm">ATM</option>
+              <option value="branch">Branch</option>
+            </select>
+          </div>
+          <div class="form-group span-2">
+            <label>Description</label>
+            <input type="text" [(ngModel)]="newTx.description" placeholder="Transaction description"/>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="showNew.set(false)">Cancel</button>
+        <button class="btn-new" (click)="submitNew()" [disabled]="savingNew()">
+          {{ savingNew() ? 'Saving…' : 'Save Transaction' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
