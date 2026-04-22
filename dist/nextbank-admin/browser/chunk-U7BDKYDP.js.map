@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/core/services/theme.service.ts"],
+  "sourcesContent": ["import { Injectable, signal, effect } from '@angular/core';\n\n@Injectable({ providedIn: 'root' })\nexport class ThemeService {\n  isDark = signal<boolean>(false);\n\n  constructor() {\n    const saved = localStorage.getItem('nb_admin_theme');\n    if (saved === 'dark') this.isDark.set(true);\n\n    effect(() => {\n      const dark = this.isDark();\n      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');\n      localStorage.setItem('nb_admin_theme', dark ? 'dark' : 'light');\n    });\n  }\n\n  toggle() {\n    this.isDark.update(v => !v);\n  }\n}\n"],
+  "mappings": ";;;;;;;AAGM,IAAO,eAAP,MAAO,cAAY;EAGvB,cAAA;AAFA,SAAA,SAAS,OAAgB,KAAK;AAG5B,UAAM,QAAQ,aAAa,QAAQ,gBAAgB;AACnD,QAAI,UAAU;AAAQ,WAAK,OAAO,IAAI,IAAI;AAE1C,WAAO,MAAK;AACV,YAAM,OAAO,KAAK,OAAM;AACxB,eAAS,gBAAgB,aAAa,cAAc,OAAO,SAAS,OAAO;AAC3E,mBAAa,QAAQ,kBAAkB,OAAO,SAAS,OAAO;IAChE,CAAC;EACH;EAEA,SAAM;AACJ,SAAK,OAAO,OAAO,OAAK,CAAC,CAAC;EAC5B;;;uBAhBW,eAAY;IAAA;EAAA;;4EAAZ,eAAY,SAAZ,cAAY,WAAA,YADC,OAAM,CAAA;EAAA;;",
+  "names": []
+}
