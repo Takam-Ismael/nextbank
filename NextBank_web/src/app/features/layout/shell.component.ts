@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/services/theme.service';
+import { NgFor, NgIf } from '@angular/common';
 
 interface NavItem {
   path: string;
@@ -13,7 +14,8 @@ interface NavItem {
 @Component({
   selector: 'nb-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule],
+  // Instead of CommonModule, use explicit imports
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgFor, NgIf, FormsModule],
   template: `
     <div class="shell" [class.collapsed]="sidebarCollapsed()">
 
@@ -367,6 +369,7 @@ export class ShellComponent {
     {
       path: '/notifications', label: 'Notifications',
       icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`
+
     },
     {
       path: '/settings', label: 'Settings',

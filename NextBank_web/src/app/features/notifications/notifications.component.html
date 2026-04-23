@@ -1,0 +1,11 @@
+<h2>Notifications</h2>
+
+<input [(ngModel)]="newNotif.title" placeholder="Title">
+<input [(ngModel)]="newNotif.message" placeholder="Message">
+
+<button (click)="send()">Send</button>
+
+<div *ngFor="let n of notifications">
+    <h4>{{n.title}}</h4>
+    <p>{{n.message}}</p>
+</div>

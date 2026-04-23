@@ -1,0 +1,18 @@
+<h2>Compliance</h2>
+
+<table>
+    <tr>
+        <th>ID</th><th>Name</th><th>Risk</th><th>Status</th><th>Actions</th>
+    </tr>
+
+    <tr *ngFor="let a of alerts">
+        <td>{{a.id}}</td>
+        <td>{{a.name}}</td>
+        <td>{{a.risk}}</td>
+        <td>{{a.status}}</td>
+        <td>
+            <button (click)="approve(a)">Approve</button>
+            <button (click)="reject(a)">Reject</button>
+        </td>
+    </tr>
+</table>

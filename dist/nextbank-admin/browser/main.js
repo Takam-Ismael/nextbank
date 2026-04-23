@@ -5,7 +5,7 @@ import {
   bootstrapApplication,
   provideHttpClient,
   provideRouter
-} from "./chunk-YZXHJXLV.js";
+} from "./chunk-GVVMNZFR.js";
 import {
   ANIMATION_MODULE_TYPE,
   ChangeDetectionScheduler,
@@ -31,7 +31,7 @@ import {
   ɵɵdefineNgModule,
   ɵɵelement,
   ɵɵinject
-} from "./chunk-YOPZAQ25.js";
+} from "./chunk-O7GWGEVR.js";
 
 // src/app/app.component.ts
 var AppComponent = class _AppComponent {
@@ -4587,16 +4587,32 @@ var NoopAnimationsModule = class _NoopAnimationsModule {
 var routes = [
   {
     path: "",
-    loadComponent: () => import("./chunk-UMVXUCMA.js").then((m) => m.ShellComponent),
+    loadComponent: () => import("./chunk-FLYWCUM2.js").then((m) => m.ShellComponent),
     children: [
       { path: "", redirectTo: "overview", pathMatch: "full" },
       {
         path: "overview",
-        loadComponent: () => import("./chunk-SMOMBZTK.js").then((m) => m.DashboardComponent)
+        loadComponent: () => import("./chunk-3QQOLA62.js").then((m) => m.DashboardComponent)
       },
       {
         path: "customers",
-        loadComponent: () => import("./chunk-3YFFGJKF.js").then((m) => m.CustomersComponent)
+        loadComponent: () => import("./chunk-ODJJGSFV.js").then((m) => m.CustomersComponent)
+      },
+      {
+        path: "transactions",
+        loadComponent: () => import("./chunk-AJAOCX67.js").then((m) => m.TransactionsComponent)
+      },
+      {
+        path: "compliance",
+        loadComponent: () => import("./chunk-TKBOHLRP.js").then((m) => m.ComplianceComponent)
+      },
+      {
+        path: "notifications",
+        loadComponent: () => import("./chunk-ZPDORO4A.js").then((m) => m.NotificationsComponent)
+      },
+      {
+        path: "settings",
+        loadComponent: () => import("./chunk-J35ZNPXY.js").then((m) => m.SettingsComponent)
       }
     ]
   },

@@ -22,6 +22,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./transactions/transactions.component').then(m => m.TransactionsComponent),
       },
+      {
+        path: 'compliance',
+        loadComponent: () =>
+          import('./features/compliance/compliance.component').then(m => m.ComplianceComponent),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/notifications/notifications.component').then(m => m.NotificationsComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then(m => m.SettingsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
