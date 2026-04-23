@@ -1,0 +1,32 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: notifications-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/notifications_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: false
+    baseline-on-migrate: true
+
+jwt:
+  secret: ${JWT_SECRET:secret_key_placeholder_for_nextbank_digital_platform_2024}
+  expiration: 86400000 # 24 hours
+
+# Firebase Cloud Messaging Configuration
+firebase:
+  enabled: ${FIREBASE_ENABLED:true}
+  service-account-key-path: ${FIREBASE_SERVICE_ACCOUNT_KEY_PATH:classpath:firebase-service-account.json}
+  # Alternative: Use base64 encoded service account JSON
+  service-account-key-base64: ${FIREBASE_SERVICE_ACCOUNT_KEY_BASE64:}

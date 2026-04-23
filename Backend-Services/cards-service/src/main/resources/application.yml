@@ -1,11 +1,11 @@
 server:
-  port: 8084
+  port: 8086
 
 spring:
   application:
-    name: accounts-service
+    name: cards-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/accounts_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cards_db}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:root}
   jpa:
@@ -15,18 +15,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: false
     baseline-on-migrate: true
-
-http-sms:
-  api-key: ${HTTP_SMS_KEY:uk_SnKH4u3DNnSsd5OvaL6PtNuDo0u6IKwKpsproigWnpJsaJjPLwIVFt20Z-ZoKQe6}
-  phone-number: ${HTTP_SMS_PHONE:+237693671898}
 
 jwt:
   secret: ${JWT_SECRET:secret_key_placeholder_for_nextbank_digital_platform_2024}
   expiration: 86400000 # 24 hours
 
-app:
-  base-url: ${APP_BASE_URL:http://localhost:8084}
-  demo-url: https://cute-flowers-find.loca.lt
+accounts-service:
+  url: ${ACCOUNTS_SERVICE_URL:http://localhost:8084}
+
+notifications-service:
+  url: ${NOTIFICATIONS_SERVICE_URL:http://localhost:8087}

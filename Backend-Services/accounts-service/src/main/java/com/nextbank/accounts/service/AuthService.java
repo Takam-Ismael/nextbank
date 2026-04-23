@@ -57,8 +57,8 @@ public class AuthService {
         User user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Step 3: Generate JWT
-        String token = jwtUtil.generateToken(user.getPhoneNumber(), user.getRole().name());
+        // Step 3: Generate JWT with userId
+        String token = jwtUtil.generateToken(user.getPhoneNumber(), user.getRole().name(), user.getId());
 
         return AuthResponse.builder()
                 .token(token)
@@ -81,7 +81,7 @@ public class AuthService {
             throw new RuntimeException("Invalid username or password");
         }
         
-        String token = jwtUtil.generateToken(user.getPhoneNumber(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getPhoneNumber(), user.getRole().name(), user.getId());
         
         return AuthResponse.builder()
                 .token(token)
