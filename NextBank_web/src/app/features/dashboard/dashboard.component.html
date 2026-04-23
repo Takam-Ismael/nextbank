@@ -1,0 +1,191 @@
+<div class="dashboard">
+
+  <!-- HERO BANNER -->
+  <div class="hero-banner">
+    <div class="hero-left">
+      <p class="hero-greeting">Good morning, Admin</p>
+      <h1 class="hero-title">Welcome to NextBank HQ</h1>
+      <p class="hero-desc">Your platform is performing exceptionally. Revenue is up 12.5% this month with 3,420 transactions processed.</p>
+      <div class="hero-pills">
+        <div class="hero-pill">
+          <div class="pill-row"><span class="pill-val">24,521</span><span class="pill-change up">+8.2%</span></div>
+          <span class="pill-label">Active Users</span>
+        </div>
+        <div class="hero-pill">
+          <div class="pill-row"><span class="pill-val">385 000 XAF</span><span class="pill-change up">+4.1%</span></div>
+          <span class="pill-label">Avg. Transaction</span>
+        </div>
+        <div class="hero-pill">
+          <div class="pill-row"><span class="pill-val">97.3%</span><span class="pill-change up">+0.8%</span></div>
+          <span class="pill-label">Approval Rate</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <p class="hero-rev-val">142 800 000 XAF</p>
+      <p class="hero-rev-label">Total Revenue · 2024</p>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card" *ngFor="let s of statsEx; let i = index">
+      <div class="stat-top">
+        <div class="stat-icon-inner">
+          <i *ngIf="i === 0" class="ph ph-wallet"></i>
+          <i *ngIf="i === 1" class="ph ph-users-three"></i>
+          <i *ngIf="i === 2" class="ph ph-arrows-left-right"></i>
+          <i *ngIf="i === 3" class="ph ph-credit-card"></i>
+        </div>
+        <span class="stat-change" [class.up]="s.changeUp" [class.down]="!s.changeUp">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="s.changeUp ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'"/>
+          </svg>
+          {{ s.change.replace('↑ ','').replace('↓ ','') }}
+        </span>
+      </div>
+      <div class="stat-val">{{ s.value }}</div>
+      <div class="stat-label">{{ s.label }}</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="charts-row">
+    <div class="chart-card revenue-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Revenue Overview</h3>
+          <p class="chart-sub">Monthly revenue trend</p>
+        </div>
+        <div class="period-tabs">
+          <button *ngFor="let p of ['7d','30d','90d','1y']" (click)="revPeriod.set(p)" [class.active]="revPeriod() === p" class="period-btn">{{ p }}</button>
+        </div>
+      </div>
+      <div class="chart-body"><canvas #revenueCanvas></canvas></div>
+    </div>
+
+    <div class="chart-card donut-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Account Types</h3>
+          <p class="chart-sub">Distribution of account types</p>
+        </div>
+      </div>
+      <div class="donut-wrap"><canvas #donutCanvas></canvas></div>
+      <div class="donut-legend">
+        <div class="legend-item" *ngFor="let a of accountTypes">
+          <span class="legend-dot" [style.background]="a.color"></span>
+          <span class="legend-label">{{ a.label }}</span>
+          <span class="legend-val">{{ a.value }}%</span>
+        </div>
+      </div>
+    </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+    <div class="chart-card activity-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Weekly Activity</h3>
+          <p class="chart-sub">Transaction volume by day</p>
+        </div>
+        <button class="more-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+        </button>
+      </div>
+      <div class="chart-body"><canvas #weeklyCanvas></canvas></div>
+      <div class="chart-legend-row">
+        <span class="legend-pill"><span class="lp-dot" style="background:#14b8a6"></span> Deposits</span>
+        <span class="legend-pill"><span class="lp-dot" style="background:#1e3a6e"></span> Withdrawals</span>
+        <span class="legend-pill"><span class="lp-dot" style="background:#f59e0b"></span> Transfers</span>
+      </div>
+    </div>
+
+    <div class="chart-card alerts-card">
+      <div class="chart-header">
+        <div>
+          <h3 class="chart-title">Security Alerts</h3>
+          <p class="chart-sub">Flagged activities</p>
+        </div>
+        <span class="alerts-badge">{{ alerts.length }} New</span>
+      </div>
+      <div class="alerts-list">
+        <div class="alert-item" *ngFor="let a of alerts">
+          <div class="alert-icon-wrap" [class]="'sev-' + a.severity">
+            <i *ngIf="a.severity === 'high'" class="ph ph-warning-octagon"></i>
+            <i *ngIf="a.severity === 'medium'" class="ph ph-warning"></i>
+            <i *ngIf="a.severity === 'low'" class="ph ph-info"></i>
+          </div>
+          <div class="alert-meta">
+            <div class="alert-title">{{ a.title }}</div>
+            <div class="alert-info">ID: {{ a.id }} &middot; {{ a.time }}</div>
+          </div>
+        </div>
+      </div>
+      <a class="view-alerts-link" routerLink="/compliance">View all alerts &rsaquo;</a>
+    </div>
+  </div>
+
+  <!-- RECENT CUSTOMERS TABLE -->
+  <div class="chart-card customers-table-card">
+    <div class="table-header">
+      <div>
+        <h3 class="chart-title">Recent Customers</h3>
+        <p class="chart-sub">Newly registered and active customers</p>
+      </div>
+      <a class="view-all-link" routerLink="/customers">View all &rsaquo;</a>
+    </div>
+    <table class="customers-table">
+      <thead>
+        <tr>
+          <th>CUSTOMER</th>
+          <th>STATUS</th>
+          <th>BALANCE</th>
+          <th>JOINED</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of recentCustomers">
+          <td>
+            <div class="cust-cell">
+              <div class="cust-avatar">{{ c.initials }}</div>
+              <div class="cust-info">
+                <div class="cust-name">{{ c.name }}</div>
+                <div class="cust-email">{{ c.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="status-badge" [ngClass]="statusClass(c.status)">{{ c.status }}</span></td>
+          <td class="balance-cell">{{ fmtBalance(c.balance) }}</td>
+          <td class="joined-cell">{{ c.joinedAgo }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Bottom stats row -->
+    <div class="table-stats-row">
+      <div class="table-stat">
+        <div class="ts-icon"><i class="ph ph-globe"></i></div>
+        <div>
+          <div class="ts-val">99.98%</div>
+          <div class="ts-label">Platform Uptime · Last 30 days</div>
+        </div>
+      </div>
+      <div class="table-stat">
+        <div class="ts-icon"><i class="ph ph-device-mobile"></i></div>
+        <div>
+          <div class="ts-val">68%</div>
+          <div class="ts-label">Mobile Users · Of total traffic</div>
+        </div>
+      </div>
+      <div class="table-stat">
+        <div class="ts-icon"><i class="ph ph-chart-line-up"></i></div>
+        <div>
+          <div class="ts-val">+23.4%</div>
+          <div class="ts-label">Growth Rate · Month over month</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
