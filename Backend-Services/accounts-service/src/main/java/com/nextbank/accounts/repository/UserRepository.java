@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByPhoneNumber(String phoneNumber);
     Optional<User> findByFullNameAndQrTokenHash(String fullName, String qrTokenHash);
+    java.util.List<User> findAllByRole(User.Role role);
 }

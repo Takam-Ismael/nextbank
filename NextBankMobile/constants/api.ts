@@ -1,8 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Change this to your Kong gateway URL
-const BASE_URL = 'http://localhost:8000';
+import { getHostIp } from './ipdetector';
+
+// Connect directly to the backend (running on port 8081)
+// Kong gateway (port 8000) is only used when services run inside Docker.
+const hostIp = getHostIp();
+const BASE_URL = `http://${hostIp}:8081`;
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -19,11 +23,11 @@ api.interceptors.request.use(async (config) => {
 
 // ─── AUTH ───────────────────────────────────────────────
 export const authApi = {
-  login: (fullName: string, qrToken: string) =>
-    api.post('/api/accounts/auth/login', { fullName, qrToken }),
+  login: (fullName: string, qrCode: string) =>
+    api.post('/api/accounts/auth/login', { fullName, qrCode }),
 
-  verifyOtp: (userId: number, otp: string) =>
-    api.post('/api/accounts/auth/verify-otp', { userId, otp }),
+  verifyOtp: (identifier: string, code: string) =>
+    api.post('/api/accounts/auth/verify-otp', { identifier, code }),
 };
 
 // ─── ACCOUNTS ───────────────────────────────────────────

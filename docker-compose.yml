@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  accounts-db:
+    image: postgres:15-alpine
+    container_name: accounts-db
+    environment:
+      POSTGRES_DB: accounts_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  accounts-service:
+    build:
+      context: ./Backend-Services/accounts-service
+      dockerfile: Dockerfile
+    container_name: accounts-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://accounts-db:5432/accounts_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+      JWT_SECRET: ${JWT_SECRET:-secret_key_placeholder_for_nextbank_digital_platform_2024}
+      HTTP_SMS_KEY: ${HTTP_SMS_KEY:-PLACEHOLDER_KEY}
+      HTTP_SMS_PHONE: ${HTTP_SMS_PHONE:-PLACEHOLDER_PHONE}
+    depends_on:
+      - accounts-db
+
+  kong:
+    image: kong:3.4-alpine
+    container_name: nextbank-gateway
+    user: "root"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /opt/kong/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    volumes:
+      - ./kong.yml:/opt/kong/kong.yml
+    ports:
+      - "8000:8000" # Proxy
+      - "8001:8001" # Admin API
+    depends_on:
+      - accounts-service
+
+volumes:
+  pgdata:

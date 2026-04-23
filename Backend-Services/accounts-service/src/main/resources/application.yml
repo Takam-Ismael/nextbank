@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8085
 
 spring:
   application:
@@ -20,8 +20,8 @@ spring:
     baseline-on-migrate: true
 
 http-sms:
-  api-key: ${HTTP_SMS_KEY:PLACEHOLDER_KEY}
-  phone-number: ${HTTP_SMS_PHONE:PLACEHOLDER_PHONE}
+  api-key: ${HTTP_SMS_KEY:uk_SnKH4u3DNnSsd5OvaL6PtNuDo0u6IKwKpsproigWnpJsaJjPLwIVFt20Z-ZoKQe6}
+  phone-number: ${HTTP_SMS_PHONE:+237693671898}
 
 jwt:
   secret: ${JWT_SECRET:secret_key_placeholder_for_nextbank_digital_platform_2024}

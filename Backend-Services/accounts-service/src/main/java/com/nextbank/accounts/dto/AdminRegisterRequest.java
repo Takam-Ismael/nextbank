@@ -11,4 +11,6 @@ public class AdminRegisterRequest {
 
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
+
+    private java.util.List<com.nextbank.accounts.entity.Account.AccountType> accountTypes;
 }

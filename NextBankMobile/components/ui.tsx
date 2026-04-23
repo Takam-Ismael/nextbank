@@ -149,7 +149,7 @@ interface NBCardProps {
 
 export function NBCard({ children, style, onPress }: NBCardProps) {
   const { colors } = useTheme();
-  const Wrapper = onPress ? TouchableOpacity : View;
+  const Wrapper: React.ElementType = onPress ? TouchableOpacity : View;
   return (
     <Wrapper
       onPress={onPress}

@@ -1,0 +1,128 @@
+// ─── NextBank Admin — Global Styles ───────────────────────────────────────────
+// Exact design system extracted from the Lovable screenshots
+// Dark sidebar: #0f1117 / #161b27, accent: #3b82f6 active, green icons, etc.
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  // Typography
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  // Light mode
+  --bg-page:       #f0f2f5;
+  --bg-card:       #ffffff;
+  --bg-card-alt:   #f8f9fb;
+  --bg-input:      #f3f4f6;
+  --sidebar-bg:    #12203a;
+  --sidebar-hover: rgba(255,255,255,0.06);
+  --sidebar-active:#1e3a6e;
+  --sidebar-text:  rgba(255,255,255,0.7);
+  --sidebar-active-text: #ffffff;
+  --topbar-bg:     #ffffff;
+  --topbar-border: #e5e7eb;
+  --text-primary:  #0d1117;
+  --text-secondary:#6b7280;
+  --text-tertiary: #9ca3af;
+  --border:        #e5e7eb;
+  --border-light:  #f3f4f6;
+  --accent:        #3b82f6;
+  --accent-light:  #dbeafe;
+  --success:       #22c55e;
+  --success-light: #dcfce7;
+  --warning:       #f59e0b;
+  --warning-light: #fef3c7;
+  --danger:        #ef4444;
+  --danger-light:  #fee2e2;
+  --purple:        #8b5cf6;
+  --purple-light:  #ede9fe;
+
+  // Chart colors
+  --chart-teal:    #14b8a6;
+  --chart-blue:    #3b82f6;
+  --chart-gold:    #f59e0b;
+
+  // Shadows
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.10);
+
+  // Radius
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+}
+
+// Dark mode overrides
+[data-theme="dark"] {
+  --bg-page:       #0d1117;
+  --bg-card:       #161b27;
+  --bg-card-alt:   #1e2435;
+  --bg-input:      #1e2435;
+  --topbar-bg:     #161b27;
+  --topbar-border: #2a3241;
+  --text-primary:  #f9fafb;
+  --text-secondary:#9ca3af;
+  --text-tertiary: #6b7280;
+  --border:        #2a3241;
+  --border-light:  #1e2435;
+  --accent-light:  #1e3a5f;
+  --success-light: #052e16;
+  --warning-light: #292006;
+  --danger-light:  #450a0a;
+  --purple-light:  #2e1065;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.4);
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  font-size: 14px;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.25s, color 0.25s;
+}
+
+// Scrollbars
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+// Utilities
+.text-primary   { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-success   { color: var(--success) !important; }
+.text-danger    { color: var(--danger) !important; }
+.text-warning   { color: var(--warning) !important; }
+.text-accent    { color: var(--accent) !important; }
+
+.fw-400 { font-weight: 400; }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  &.badge-success { background: var(--success-light); color: var(--success); }
+  &.badge-warning { background: var(--warning-light); color: var(--warning); }
+  &.badge-danger  { background: var(--danger-light);  color: var(--danger);  }
+  &.badge-accent  { background: var(--accent-light);  color: var(--accent);  }
+  &.badge-review  { background: #1e3a5f; color: #60a5fa; }
+  .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+}
+
+button { cursor: pointer; font-family: var(--font); border: none; outline: none; }
+
+input, select, textarea {
+  font-family: var(--font);
+  outline: none;
+  &:focus { outline: none; }
+}

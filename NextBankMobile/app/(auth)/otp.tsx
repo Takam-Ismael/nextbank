@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/hooks/useAuthStore';
+import { authApi } from '@/constants/api';
 import { Radius } from '@/constants/theme';
 
 const { height } = Dimensions.get('window');
@@ -22,7 +23,7 @@ const HERO_IMAGE = 'https://images.unsplash.com/photo-1486325212027-8081e485255e
 
 export default function OtpScreen() {
   const router = useRouter();
-  const { fullName, userId } = useLocalSearchParams<{ fullName: string; userId: string }>();
+  const { fullName, identifier } = useLocalSearchParams<{ fullName: string; identifier: string }>();
   const { colors } = useTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
 
@@ -69,18 +70,18 @@ export default function OtpScreen() {
   const handleVerify = async (code: string) => {
     setLoading(true);
     try {
-      // In production: call real API
-      // const res = await authApi.verifyOtp(Number(userId), code);
-      // setAuth(res.data.token, res.data.user);
+      // Real API Call
+      const res = await authApi.verifyOtp(identifier, code);
+      // Backend returns flat: { token, id, fullName, phoneNumber, role }
+      const user = {
+        id: res.data.id,
+        fullName: res.data.fullName,
+        email: '',
+        phone: res.data.phoneNumber,
+        nationalId: '',
+      };
+      setAuth(res.data.token, user);
 
-      // Demo: simulate success
-      setAuth('demo_token', {
-        id: 42,
-        fullName: fullName || 'John Doe',
-        email: 'john.doe@nextbank.cm',
-        phone: '+237 699 123 456',
-        nationalId: 'CMR-123456789',
-      });
       router.replace('/(app)/dashboard');
     } catch (err: any) {
       Alert.alert('Invalid OTP', 'The code you entered is incorrect or has expired.');
@@ -128,7 +129,7 @@ export default function OtpScreen() {
 
         <Text style={[styles.title, { color: colors.textPrimary }]}>Enter OTP</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          We sent a 6-digit code to your phone ending in ***456
+          We sent a 6-digit code to your phone ending in ***{identifier?.slice(-3)}
         </Text>
 
         {/* OTP boxes */}

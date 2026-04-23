@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuthStore } from '@/hooks/useAuthStore';
 import { Radius } from '@/constants/theme';
 
 const TYPES = [
@@ -18,12 +19,31 @@ export default function OpenAccountScreen() {
 
   const handleOpen = async () => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const token = useAuthStore.getState().token;
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8085';
+      const res = await fetch(`${apiUrl}/api/accounts/open`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ type: selected })
+      });
+      
+      if (res.ok) {
+        Alert.alert('Request Sent', `Your request for a ${selected} account is pending approval by an admin.`, [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        Alert.alert('Error', errorData.message || 'Failed to request account');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Network error. Could not request account.');
+    } finally {
       setLoading(false);
-      Alert.alert('Account Opened', `Your new ${selected} account has been created.`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
-    }, 1200);
+    }
   };
 
   return (

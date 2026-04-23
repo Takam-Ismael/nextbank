@@ -32,4 +32,10 @@ public class AuthController {
         AuthResponse response = authService.verifyOtp(request.getIdentifier(), request.getCode());
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/admin-login")
+    public ResponseEntity<AuthResponse> adminLogin(@Valid @RequestBody com.nextbank.accounts.dto.AdminLoginRequest request) {
+        AuthResponse response = authService.adminLogin(request);
+        return ResponseEntity.ok(response);
+    }
 }

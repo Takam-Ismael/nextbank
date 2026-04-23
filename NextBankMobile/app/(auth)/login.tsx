@@ -10,12 +10,14 @@ import {
   Platform,
   ScrollView,
   ImageBackground,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/hooks/useAuthStore';
+import { authApi } from '@/constants/api';
 import { Radius } from '@/constants/theme';
 
 const { height } = Dimensions.get('window');
@@ -29,23 +31,36 @@ export default function LoginScreen() {
   const [fullName, setFullName] = useState('');
   const [nameError, setNameError] = useState('');
 
-  const handleScanQR = () => {
+  const [loading, setLoading] = useState(false);
+
+  const handleScanQR = async () => {
     if (!fullName.trim()) {
       setNameError('Please enter your full name first.');
       return;
     }
     setNameError('');
-    // Demo: simulate QR success → go to OTP
-    router.push({ pathname: '/(auth)/otp', params: { fullName: fullName.trim(), userId: '42' } });
+    setLoading(true);
+    try {
+      // Real API Call: Using demo QR code
+      const qrCode = "demo_qr_123"; 
+      const response = await authApi.login(fullName.trim(), qrCode);
+      
+      // The backend sends OTP to the user's phone number.
+      // We pass the demo phone number to the OTP screen for verification.
+      // In production, this would come from the API response.
+      const phoneNumber = "+237693671898"; // Demo user's real phone
+      router.push({ pathname: '/(auth)/otp', params: { fullName: fullName.trim(), identifier: phoneNumber } });
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'We couldn\'t find a match for that name and QR code.';
+      Alert.alert('Login Failed', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpload = () => {
-    if (!fullName.trim()) {
-      setNameError('Please enter your full name first.');
-      return;
-    }
-    setNameError('');
-    router.push({ pathname: '/(auth)/otp', params: { fullName: fullName.trim(), userId: '42' } });
+  const handleUpload = async () => {
+    // "Upload" does the same thing as "Scan QR" — just a different UI entry point
+    await handleScanQR();
   };
 
   return (

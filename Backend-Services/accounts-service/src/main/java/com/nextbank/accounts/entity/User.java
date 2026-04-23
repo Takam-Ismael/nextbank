@@ -29,6 +29,9 @@ public class User {
 
     private String qrTokenHash;
 
+    @Transient
+    private String qrCodeBase64; // Not saved in DB
+
     private String passwordHash; // Only for ADMINs
 
     @Column(updatable = false)

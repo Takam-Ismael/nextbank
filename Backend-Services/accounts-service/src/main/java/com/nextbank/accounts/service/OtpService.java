@@ -29,18 +29,26 @@ public class OtpService {
                 
         otpRepository.save(record);
         
+        // Log the OTP for testing (REMOVE IN PRODUCTION!)
+        System.out.println("=== [TEST] OTP for " + phoneNumber + " is: " + otp + " ===");
+        
         // Send the OTP via SMS
         boolean sent = smsService.sendOtpSms(phoneNumber, otp);
         if (!sent) {
-            // In a real scenario we might throw an exception, but for now we log it.
-            // Throwing might be better if we want to fail the login step 1.
+            System.out.println("=== [TEST] SMS failed! Use OTP: " + otp + " or test code: 123456 ===");
         }
         
-        return otp; // Return it just in case, but usually we just consider it sent
+        return otp;
     }
 
     @Transactional
     public boolean verifyOtp(String phoneNumber, String code) {
+        // TESTING: Allow hardcoded test code "123456" to always pass
+        if ("123456".equals(code)) {
+            System.out.println("=== [TEST] Test OTP 123456 accepted for: " + phoneNumber + " ===");
+            return true;
+        }
+        
         Optional<OtpRecord> optionalRecord = otpRepository.findTopByIdentifierOrderByCreatedAtDesc(phoneNumber);
         
         if (optionalRecord.isEmpty()) {

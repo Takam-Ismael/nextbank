@@ -33,6 +33,11 @@ public class Account {
     @Enumerated(EnumType.STRING)
     private AccountType type;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private AccountStatus status = AccountStatus.ACTIVE;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -45,6 +50,9 @@ public class Account {
         if (balance == null) {
             balance = BigDecimal.ZERO;
         }
+        if (status == null) {
+            status = AccountStatus.PENDING;
+        }
     }
 
     @PreUpdate
@@ -53,6 +61,10 @@ public class Account {
     }
 
     public enum AccountType {
-        SAVINGS, BUSINESS
+        CHECKING, SAVINGS, BUSINESS
+    }
+
+    public enum AccountStatus {
+        PENDING, ACTIVE, FROZEN, CLOSED
     }
 }
