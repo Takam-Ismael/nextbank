@@ -89,6 +89,19 @@ public class AccountService {
         return mapToDto(accountRepository.save(account));
     }
 
+    @Transactional
+    public void approveAllUserAccounts(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Account> accounts = accountRepository.findByUser(user);
+        for (Account acc : accounts) {
+            if (acc.getStatus() == Account.AccountStatus.PENDING) {
+                acc.setStatus(Account.AccountStatus.ACTIVE);
+                accountRepository.save(acc);
+            }
+        }
+    }
+
     public List<AccountDto> getPendingAccounts() {
         return accountRepository.findAll().stream()
                 .filter(acc -> acc.getStatus() == Account.AccountStatus.PENDING)
@@ -104,7 +117,7 @@ public class AccountService {
         BigDecimal totalRevenue = accountRepository.findAll().stream()
                 .map(Account::getBalance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        long activeUsers = userRepository.count();
+        long activeUsers = userRepository.countByRole(User.Role.CUSTOMER);
         long pendingAccounts = accountRepository.findAll().stream()
                 .filter(acc -> acc.getStatus() == Account.AccountStatus.PENDING)
                 .count();

@@ -41,8 +41,30 @@ public class AdminController {
         return ResponseEntity.ok(accountService.approveAccount(accountId));
     }
 
+    @PatchMapping("/approve-all/{userId}")
+    public ResponseEntity<Void> approveAllAccounts(@PathVariable Long userId) {
+        accountService.approveAllUserAccounts(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/approve-user/{userId}")
+    public ResponseEntity<User> approveUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.approveUser(userId));
+    }
+
     @GetMapping("/stats")
     public ResponseEntity<java.util.Map<String, Object>> getStats() {
         return ResponseEntity.ok(accountService.getGlobalStats());
+    }
+
+    @PutMapping("/customers/{userId}")
+    public ResponseEntity<User> updateCustomer(@PathVariable Long userId, @RequestBody com.nextbank.accounts.dto.UpdateCustomerRequest request) {
+        return ResponseEntity.ok(userService.updateCustomer(userId, request));
+    }
+
+    @DeleteMapping("/customers/{userId}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long userId) {
+        userService.deleteCustomer(userId);
+        return ResponseEntity.noContent().build();
     }
 }

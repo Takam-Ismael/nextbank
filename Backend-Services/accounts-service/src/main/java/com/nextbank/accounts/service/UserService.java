@@ -6,6 +6,7 @@ import com.nextbank.accounts.entity.User;
 import com.nextbank.accounts.repository.AccountRepository;
 import com.nextbank.accounts.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final QrCodeService qrCodeService;
+    private final SmsService smsService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @Transactional
     public User registerCustomer(AdminRegisterRequest request) {
@@ -27,7 +32,10 @@ public class UserService {
         User user = User.builder()
                 .fullName(request.getFullName())
                 .phoneNumber(request.getPhoneNumber())
+                .email(request.getEmail())
+                .nationalId(request.getNationalId())
                 .role(User.Role.CUSTOMER)
+                .status("Pending")
                 .qrTokenHash(token)
                 .build();
         
@@ -41,7 +49,8 @@ public class UserService {
         }
 
         for (Account.AccountType type : types) {
-            BigDecimal initialBalance = type == Account.AccountType.CHECKING 
+            // Give 50 XAF bonus for both savings and checking
+            BigDecimal initialBalance = (type == Account.AccountType.CHECKING || type == Account.AccountType.SAVINGS)
                 ? new BigDecimal("50.00") 
                 : BigDecimal.ZERO;
 
@@ -50,11 +59,15 @@ public class UserService {
                     .accountNumber(generateAccountNumber())
                     .balance(initialBalance)
                     .type(type)
-                    .status(Account.AccountStatus.ACTIVE)
+                    .status(Account.AccountStatus.PENDING)
                     .build();
             
             accountRepository.save(account);
+            savedUser.getAccounts().add(account);
         }
+
+        // 3. Send Initial Welcome SMS (Account Pending)
+        smsService.sendRegistrationSms(savedUser.getPhoneNumber(), savedUser.getFullName());
 
         return savedUser;
     }
@@ -68,6 +81,53 @@ public class UserService {
         return userRepository.findAllByRole(User.Role.CUSTOMER).stream()
             .peek(u -> u.setQrCodeBase64(qrCodeService.generateQrCodeBase64(u.getQrTokenHash())))
             .collect(java.util.stream.Collectors.toList());
+    }
+
+    public void deleteCustomer(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(user);
+    }
+
+    @Transactional
+    public User updateCustomer(Long userId, com.nextbank.accounts.dto.UpdateCustomerRequest request) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        boolean wasActive = "Active".equals(user.getStatus());
+        
+        if (request.getFullName() != null) user.setFullName(request.getFullName());
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getNationalId() != null) user.setNationalId(request.getNationalId());
+        if (request.getStatus() != null) user.setStatus(request.getStatus());
+        
+        User saved = userRepository.save(user);
+        
+        // If status changed to Active, send approval SMS
+        if (!wasActive && "Active".equals(saved.getStatus())) {
+            smsService.sendApprovalSms(saved.getPhoneNumber(), saved.getFullName(), saved.getQrTokenHash(), baseUrl);
+        }
+
+        saved.setQrCodeBase64(qrCodeService.generateQrCodeBase64(saved.getQrTokenHash()));
+        return saved;
+    }
+
+    @Transactional
+    public User approveUser(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        boolean alreadyActive = "Active".equals(user.getStatus());
+        user.setStatus("Active");
+        User saved = userRepository.save(user);
+        
+        if (!alreadyActive) {
+            smsService.sendApprovalSms(saved.getPhoneNumber(), saved.getFullName(), saved.getQrTokenHash(), baseUrl);
+        }
+
+        saved.setQrCodeBase64(qrCodeService.generateQrCodeBase64(saved.getQrTokenHash()));
+        return saved;
     }
 
     private String generateAccountNumber() {

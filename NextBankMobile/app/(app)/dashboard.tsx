@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,23 +16,20 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/hooks/useAuthStore';
 import { SectionHeader } from '@/components/ui';
 import { Radius } from '@/constants/theme';
+import { accountsApi } from '@/constants/api';
 
 const { width } = Dimensions.get('window');
 
-// Mock data
-const MOCK_ACCOUNTS = [
-  { id: 1, type: 'CHECKING', label: 'CHECKING', code: '0001-CHK', balance: 2847350, initial: 'C', color: '#F5A623', lightBg: '#FEF3D7' },
-  { id: 2, type: 'SAVINGS', label: 'SAVINGS', code: '0002-SAV', balance: 5120000, initial: 'S', color: '#12203A', lightBg: '#E8EBF0' },
-  { id: 3, type: 'BUSINESS', label: 'BUSINESS', code: '0003-BIZ', balance: 12500000, initial: 'B', color: '#6B7280', lightBg: '#F3F4F6' },
-];
+// Helper to get account style
+const getAccountStyle = (type: string) => {
+  switch (type) {
+    case 'SAVINGS': return { initial: 'S', color: '#12203A', lightBg: '#E8EBF0' };
+    case 'BUSINESS': return { initial: 'B', color: '#6B7280', lightBg: '#F3F4F6' };
+    default: return { initial: 'C', color: '#F5A623', lightBg: '#FEF3D7' };
+  }
+};
 
-const MOCK_TRANSACTIONS = [
-  { id: 1, name: 'Payment from Alice Mbeki', date: 'Apr 11', amount: 150000, type: 'in', status: 'COMPLETED' },
-  { id: 2, name: 'Orange Money Withdrawal', date: 'Apr 11', amount: -50000, type: 'out', status: 'COMPLETED' },
-  { id: 3, name: 'Stripe Deposit', date: 'Apr 10', amount: 500000, type: 'in', status: 'COMPLETED' },
-  { id: 4, name: 'Transfer to Bob Njoh', date: 'Apr 10', amount: -75000, type: 'out', status: 'COMPLETED' },
-  { id: 5, name: 'Salary deposit', date: 'Apr 9', amount: 200000, type: 'in', status: 'COMPLETED' },
-];
+const MOCK_TRANSACTIONS: any[] = [];
 
 function formatAmount(n: number) {
   return Math.abs(n).toLocaleString('fr-CM').replace(/,/g, ' ') + ' XAF';
@@ -110,8 +107,25 @@ export default function DashboardScreen() {
   const { colors } = useTheme();
   const user = useAuthStore((s) => s.user);
   const [balanceVisible, setBalanceVisible] = useState(true);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalBalance = MOCK_ACCOUNTS.reduce((s, a) => s + a.balance, 0);
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await accountsApi.getAccounts();
+      setAccounts(res.data);
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalBalance = accounts.reduce((s, a) => s + (a.balance || 0), 0);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -204,16 +218,22 @@ export default function DashboardScreen() {
 
             {/* Account pills */}
             <View style={styles.accountPills}>
-              {MOCK_ACCOUNTS.map((acct) => (
+              {accounts.slice(0, 3).map((acct) => (
                 <View key={acct.id} style={styles.accountPill}>
-                  <Text style={styles.pillType}>{acct.label}</Text>
+                  <Text style={styles.pillType}>{acct.type}</Text>
                   <Text style={styles.pillAmount}>
                     {balanceVisible
-                      ? `${acct.balance.toLocaleString('fr-CM').replace(/,/g, ' ')} XAF`
+                      ? `${(acct.balance || 0).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF`
                       : '•••••'}
                   </Text>
                 </View>
               ))}
+              {accounts.length === 0 && !loading && (
+                 <View style={styles.accountPill}>
+                    <Text style={styles.pillType}>NO ACCOUNTS</Text>
+                    <Text style={styles.pillAmount}>0 XAF</Text>
+                 </View>
+              )}
             </View>
           </ImageBackground>
         </View>
@@ -260,31 +280,34 @@ export default function DashboardScreen() {
           showsHorizontalScrollIndicator
           contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}
         >
-          {MOCK_ACCOUNTS.map((acct) => (
-            <TouchableOpacity
-              key={acct.id}
-              style={[
-                styles.acctCard,
-                {
-                  backgroundColor: colors.bgCard,
-                  borderColor: colors.border,
-                },
-              ]}
-              activeOpacity={0.85}
-              onPress={() => router.push({ pathname: '/(app)/accounts/[id]', params: { id: acct.id } })}
-            >
-              <View style={styles.acctCardTop}>
-                <View style={[styles.acctInitial, { backgroundColor: acct.lightBg }]}>
-                  <Text style={[styles.acctInitialText, { color: acct.color }]}>{acct.initial}</Text>
+          {accounts.map((acct) => {
+            const style = getAccountStyle(acct.type);
+            return (
+              <TouchableOpacity
+                key={acct.id}
+                style={[
+                  styles.acctCard,
+                  {
+                    backgroundColor: colors.bgCard,
+                    borderColor: colors.border,
+                  },
+                ]}
+                activeOpacity={0.85}
+                onPress={() => router.push({ pathname: '/(app)/accounts/[id]', params: { id: acct.accountNumber } })}
+              >
+                <View style={styles.acctCardTop}>
+                  <View style={[styles.acctInitial, { backgroundColor: style.lightBg }]}>
+                    <Text style={[styles.acctInitialText, { color: style.color }]}>{style.initial}</Text>
+                  </View>
+                  <Text style={[styles.acctType, { color: colors.textSecondary }]}>{acct.type}</Text>
                 </View>
-                <Text style={[styles.acctType, { color: colors.textSecondary }]}>{acct.label}</Text>
-              </View>
-              <Text style={[styles.acctBalance, { color: colors.textPrimary }]}>
-                {acct.balance.toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
-              </Text>
-              <Text style={[styles.acctCode, { color: colors.textTertiary }]}>{acct.code}</Text>
-            </TouchableOpacity>
-          ))}
+                <Text style={[styles.acctBalance, { color: colors.textPrimary }]}>
+                  {(acct.balance || 0).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
+                </Text>
+                <Text style={[styles.acctCode, { color: colors.textTertiary }]}>{acct.accountNumber}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         {/* Recent Activity */}
@@ -306,6 +329,11 @@ export default function DashboardScreen() {
             {MOCK_TRANSACTIONS.map((tx) => (
               <TransactionItem key={tx.id} item={tx} />
             ))}
+            {MOCK_TRANSACTIONS.length === 0 && (
+              <View style={{ padding: 30, alignItems: 'center' }}>
+                <Text style={{ color: colors.textTertiary, fontSize: 13 }}>No recent activity</Text>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>

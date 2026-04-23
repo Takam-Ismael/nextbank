@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/services/theme.service';
@@ -64,7 +64,7 @@ interface NavItem {
             </div>
           </div>
           <div class="admin-avatar-only" *ngIf="sidebarCollapsed()">A</div>
-          <button class="logout-btn" *ngIf="!sidebarCollapsed()">
+          <button class="logout-btn" *ngIf="!sidebarCollapsed()" (click)="logout()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
             </svg>
@@ -338,6 +338,12 @@ export class ShellComponent {
   theme = inject(ThemeService);
   sidebarCollapsed = signal(false);
   searchQuery = '';
+  private router = inject(Router);
+
+  logout() {
+    localStorage.removeItem('admin_token');
+    this.router.navigate(['/login']);
+  }
 
   navItems: NavItem[] = [
     {

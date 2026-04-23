@@ -8,9 +8,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/hooks/useAuthStore';
 import { Radius } from '@/constants/theme';
+import { accountsApi } from '@/constants/api';
 
 interface MenuItemProps {
-  icon: string;
+  icon: any;
   label: string;
   sub: string;
   onPress?: () => void;
@@ -43,7 +44,30 @@ function MenuItem({ icon, label, sub, onPress, right, danger }: MenuItemProps) {
 export default function ProfileScreen() {
   const router = useRouter();
   const { colors, isDark, toggleTheme } = useTheme();
-  const { user, logout } = useAuthStore();
+  const { user, logout, setAuth, token } = useAuthStore();
+
+  React.useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await accountsApi.getMe();
+      // Update store with latest user data
+      if (token) {
+        const userData = {
+           id: res.data.id,
+           fullName: res.data.fullName,
+           email: res.data.email || '',
+           phone: res.data.phoneNumber || '',
+           nationalId: res.data.nationalId || ''
+        };
+        setAuth(token, userData);
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
+    }
+  };
 
   const initials = (user?.fullName || 'JD')
     .split(' ')
@@ -87,7 +111,7 @@ export default function ProfileScreen() {
               <View style={styles.profileMeta}>
                 <Text style={{ fontSize: 13, color: colors.textTertiary }}>📞 </Text>
                 <Text style={[styles.profileMetaText, { color: colors.textSecondary }]}>
-                  {user?.phone || '+237 699 123 456'}
+                  {user?.phone || 'No phone number'}
                 </Text>
               </View>
             </View>

@@ -455,9 +455,11 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (users: any[]) => {
         this.recentCustomers = users.slice(0, 5).map(u => {
            const initials = u.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+           const accounts = u.accounts || [];
+           const totalBalance = accounts.reduce((acc: number, curr: any) => acc + (curr.balance || 0), 0);
            return {
-              id: u.id, initials, name: u.fullName, email: u.email || 'N/A', phone: u.phoneNumber, nationalId: 'N/A',
-              status: 'Active', balance: 0, accounts: 1, cards: 0, joined: '', 
+              id: u.id, initials, name: u.fullName, email: u.email || 'N/A', phone: u.phoneNumber, nationalId: u.nationalId || 'N/A',
+              status: u.status || 'Active', balance: totalBalance, accounts: accounts.length, cards: 0, joined: '', 
               joinedAgo: new Date(u.createdAt).toLocaleDateString(),
            } as Customer;
         });

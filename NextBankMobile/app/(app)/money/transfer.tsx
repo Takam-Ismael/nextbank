@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   TextInput, StyleSheet, KeyboardAvoidingView, Platform,
@@ -9,11 +9,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { Radius } from '@/constants/theme';
 
-const ACCOUNTS = [
-  { id: 1, label: 'CHECKING', balance: 2847350 },
-  { id: 2, label: 'SAVINGS', balance: 5120000 },
-  { id: 3, label: 'BUSINESS', balance: 12500000 },
-];
+import { accountsApi } from '@/constants/api';
 
 function fmt(n: number) {
   return n.toLocaleString('fr-CM').replace(/,/g, ' ');
@@ -22,7 +18,25 @@ function fmt(n: number) {
 export default function TransferScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [fromAccount, setFromAccount] = useState(ACCOUNTS[0]);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [fromAccount, setFromAccount] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await accountsApi.getAccounts();
+      setAccounts(res.data);
+      if (res.data.length > 0) setFromAccount(res.data[0]);
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   const [toNumber, setToNumber] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [amount, setAmount] = useState('');
@@ -80,23 +94,23 @@ export default function TransferScreen() {
             {/* FROM ACCOUNT selector */}
             <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>FROM ACCOUNT</Text>
             <View style={styles.accountTabs}>
-              {ACCOUNTS.map((acct) => (
+              {accounts.map((acct) => (
                 <TouchableOpacity
                   key={acct.id}
                   style={[
                     styles.accountTab,
                     {
-                      backgroundColor: fromAccount.id === acct.id ? colors.bgCard : colors.bgCardAlt,
-                      borderColor: fromAccount.id === acct.id ? colors.accent : colors.border,
-                      borderWidth: fromAccount.id === acct.id ? 1.5 : 1,
+                      backgroundColor: fromAccount?.id === acct.id ? colors.bgCard : colors.bgCardAlt,
+                      borderColor: fromAccount?.id === acct.id ? colors.accent : colors.border,
+                      borderWidth: fromAccount?.id === acct.id ? 1.5 : 1,
                     },
                   ]}
                   onPress={() => setFromAccount(acct)}
                   activeOpacity={0.85}
                 >
-                  <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>{acct.label}</Text>
+                  <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>{acct.type}</Text>
                   <Text style={[styles.tabBalance, { color: colors.textPrimary }]}>
-                    {fmt(acct.balance)} XAF
+                    {fmt(acct.balance || 0)} XAF
                   </Text>
                 </TouchableOpacity>
               ))}

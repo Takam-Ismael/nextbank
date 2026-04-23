@@ -42,3 +42,12 @@ temp.zip
 # Mobile specific
 NextBankMobile/.expo/
 NextBankMobile/.env
+
+# Deployment docs (local only)
+full_deployment_guide.md
+full_audit_report.md
+
+# Package locks (optional)
+NextBankWeb/package-lock.json
+NextBankMobile/package-lock.json
+package-lock.json

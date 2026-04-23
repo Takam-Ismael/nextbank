@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert,
@@ -9,10 +9,7 @@ import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { Radius } from '@/constants/theme';
 
-const ACCOUNTS = [
-  { id: 1, label: 'CHECKING', code: '0001-CHK', balance: 2847350 },
-  { id: 2, label: 'SAVINGS', code: '0002-SAV', balance: 5120000 },
-];
+import { accountsApi } from '@/constants/api';
 
 type Provider = 'ORANGE_MONEY' | 'MTN_MOMO';
 
@@ -20,10 +17,28 @@ export default function WithdrawScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const [provider, setProvider] = useState<Provider>('ORANGE_MONEY');
-  const [selectedAccount, setSelectedAccount] = useState(ACCOUNTS[0]);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<any>(null);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [mobileNumber, setMobileNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await accountsApi.getAccounts();
+      setAccounts(res.data);
+      if (res.data.length > 0) setSelectedAccount(res.data[0]);
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err);
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
 
   const handleWithdraw = () => {
     if (!mobileNumber || !amount || Number(amount) <= 0) return;
@@ -69,7 +84,7 @@ export default function WithdrawScreen() {
               {([
                 { id: 'ORANGE_MONEY', label: 'Orange Money', icon: 'circle', color: '#F97316' },
                 { id: 'MTN_MOMO', label: 'MTN MoMo', icon: 'circle', color: '#EAB308' },
-              ] as { id: Provider; label: string; icon: string; color: string }[]).map((p) => (
+              ] as { id: Provider; label: string; icon: any; color: string }[]).map((p) => (
                 <TouchableOpacity
                   key={p.id}
                   style={[
@@ -97,22 +112,22 @@ export default function WithdrawScreen() {
             {/* Account */}
             <Text style={[styles.label, { color: colors.textSecondary }]}>FROM ACCOUNT</Text>
             <View style={styles.accountRow}>
-              {ACCOUNTS.map((acct) => (
+              {accounts.map((acct) => (
                 <TouchableOpacity
                   key={acct.id}
                   style={[
                     styles.accountTab,
                     {
-                      backgroundColor: selectedAccount.id === acct.id ? colors.bgCard : colors.bgCardAlt,
-                      borderColor: selectedAccount.id === acct.id ? colors.accent : colors.border,
-                      borderWidth: selectedAccount.id === acct.id ? 1.5 : 1,
+                      backgroundColor: selectedAccount?.id === acct.id ? colors.bgCard : colors.bgCardAlt,
+                      borderColor: selectedAccount?.id === acct.id ? colors.accent : colors.border,
+                      borderWidth: selectedAccount?.id === acct.id ? 1.5 : 1,
                     },
                   ]}
                   onPress={() => setSelectedAccount(acct)}
                 >
-                  <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>{acct.label}</Text>
+                  <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>{acct.type}</Text>
                   <Text style={[styles.tabBalance, { color: colors.textPrimary }]}>
-                    {acct.balance.toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
+                    {(acct.balance || 0).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
                   </Text>
                 </TouchableOpacity>
               ))}

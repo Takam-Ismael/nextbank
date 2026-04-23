@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Customer {
   id: number;
@@ -17,6 +18,7 @@ export interface Customer {
   joinedAgo: string;
   qrCodeBase64?: string;
   qrTokenHash?: string;
+  rawAccounts?: any[];
 }
 
 export interface StatCard {
@@ -31,7 +33,7 @@ export interface StatCard {
 @Injectable({ providedIn: 'root' })
 export class DataService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:8085/api/accounts/admin';
+  private baseUrl = `${environment.apiUrl}/api/accounts/admin`;
 
   getCustomers(): Observable<any[]> {
     const token = localStorage.getItem('admin_token');

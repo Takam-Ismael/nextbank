@@ -6,7 +6,7 @@ import { getHostIp } from './ipdetector';
 // Connect directly to the backend (running on port 8081)
 // Kong gateway (port 8000) is only used when services run inside Docker.
 const hostIp = getHostIp();
-const BASE_URL = `http://${hostIp}:8081`;
+const BASE_URL = `http://${hostIp}:8085`;
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -28,15 +28,19 @@ export const authApi = {
 
   verifyOtp: (identifier: string, code: string) =>
     api.post('/api/accounts/auth/verify-otp', { identifier, code }),
+  uploadQr: (formData: FormData) =>
+    api.post('/api/accounts/auth/upload-qr', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 // ─── ACCOUNTS ───────────────────────────────────────────
 export const accountsApi = {
-  getMe: () => api.get('/api/accounts/me'),
+  getMe: () => api.get('/api/accounts/users/me'),
   updateMe: (data: { fullName?: string; phone?: string }) =>
-    api.patch('/api/accounts/me', data),
+    api.patch('/api/accounts/users/me', data),
   getAccounts: () => api.get('/api/accounts'),
-  getAccount: (id: number) => api.get(`/api/accounts/${id}`),
+  getAccount: (accountNumber: string) => api.get(`/api/accounts/${accountNumber}`),
   openAccount: (accountType: string) =>
     api.post('/api/accounts/open', { accountType }),
 };

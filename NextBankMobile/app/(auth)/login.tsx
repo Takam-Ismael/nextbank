@@ -11,7 +11,12 @@ import {
   ScrollView,
   ImageBackground,
   Alert,
+  Modal,
+  ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -30,8 +35,11 @@ export default function LoginScreen() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [fullName, setFullName] = useState('');
   const [nameError, setNameError] = useState('');
-
   const [loading, setLoading] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [manualCode, setManualCode] = useState('');
+  const [showManual, setShowManual] = useState(false);
 
   const handleScanQR = async () => {
     if (!fullName.trim()) {
@@ -39,19 +47,36 @@ export default function LoginScreen() {
       return;
     }
     setNameError('');
+    
+    if (!permission?.granted) {
+      const { status } = await requestPermission();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'We need camera permission to scan your QR code.');
+        return;
+      }
+    }
+    setShowScanner(true);
+  };
+
+  const onCodeScanned = async ({ data }: { data: string }) => {
+    setShowScanner(false);
+    await processLogin(data);
+  };
+
+  const processLogin = async (qrCode: string) => {
+    const code = qrCode || manualCode.trim();
+    if (!code) {
+      Alert.alert('Error', 'Please scan a QR code or enter your secure login code.');
+      return;
+    }
+
     setLoading(true);
     try {
-      // Real API Call: Using demo QR code
-      const qrCode = "demo_qr_123"; 
-      const response = await authApi.login(fullName.trim(), qrCode);
-      
-      // The backend sends OTP to the user's phone number.
-      // We pass the demo phone number to the OTP screen for verification.
-      // In production, this would come from the API response.
-      const phoneNumber = "+237693671898"; // Demo user's real phone
+      const response = await authApi.login(fullName.trim(), code);
+      const phoneNumber = response.data.phoneNumber;
       router.push({ pathname: '/(auth)/otp', params: { fullName: fullName.trim(), identifier: phoneNumber } });
     } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || 'We couldn\'t find a match for that name and QR code.';
+      const message = err?.response?.data?.message || err?.message || 'We couldn\'t find a match for that name and login code.';
       Alert.alert('Login Failed', message);
     } finally {
       setLoading(false);
@@ -59,9 +84,48 @@ export default function LoginScreen() {
   };
 
   const handleUpload = async () => {
-    // "Upload" does the same thing as "Scan QR" — just a different UI entry point
-    await handleScanQR();
+    if (!fullName.trim()) {
+      setNameError('Please enter your full name first.');
+      return;
+    }
+    
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setLoading(true);
+      try {
+        const image = result.assets[0];
+        
+        // Send image to the backend for server-side QR decoding
+        const formData = new FormData();
+        formData.append('file', {
+          uri: image.uri,
+          type: 'image/png',
+          name: 'qr_upload.png',
+        } as any);
+
+        const response = await authApi.uploadQr(formData);
+        const decodedToken = response.data.token;
+
+        if (decodedToken) {
+          // Use the decoded token to login, just like camera scanning
+          processLogin(decodedToken);
+        } else {
+          Alert.alert('Error', 'Could not read QR code from that image. Please try again with a clearer photo.');
+        }
+      } catch (err: any) {
+        const msg = err?.response?.data?.error || 'Could not read QR code. Make sure the photo is clear and try again.';
+        Alert.alert('Scan Failed', msg);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
+
 
   return (
     <KeyboardAvoidingView
@@ -166,6 +230,42 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* — Manual Input Toggle — */}
+          <TouchableOpacity 
+            onPress={() => setShowManual(!showManual)}
+            style={{ marginBottom: 20, alignSelf: 'center' }}
+          >
+            <Text style={{ color: colors.accent, fontSize: 13, fontWeight: '600' }}>
+              {showManual ? 'Hide manual entry' : 'Trouble scanning? Enter code manually'}
+            </Text>
+          </TouchableOpacity>
+
+          {showManual && (
+            <View style={{ marginBottom: 24 }}>
+              <View style={[
+                styles.inputWrapper,
+                { backgroundColor: colors.bgInput, borderColor: colors.border },
+              ]}>
+                <Feather name="key" size={18} color={colors.textTertiary} />
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary }]}
+                  placeholder="Enter Secure Login Code"
+                  placeholderTextColor={colors.textTertiary}
+                  value={manualCode}
+                  onChangeText={setManualCode}
+                  autoCapitalize="none"
+                />
+              </View>
+              <TouchableOpacity
+                style={[styles.scanBtn, { backgroundColor: colors.navy, marginTop: 12 }]}
+                onPress={() => processLogin('')}
+                disabled={!manualCode.trim()}
+              >
+                <Text style={styles.scanBtnText}>Verify Code</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Trust badges */}
           <View style={styles.trustRow}>
             <View style={styles.trustItem}>
@@ -192,6 +292,43 @@ export default function LoginScreen() {
             </Text>
           </Text>
         </View>
+
+        {/* Scanner Modal */}
+        <Modal visible={showScanner} animationType="slide">
+          <View style={{ flex: 1, backgroundColor: '#000' }}>
+            <CameraView
+              style={StyleSheet.absoluteFillObject}
+              onBarcodeScanned={onCodeScanned}
+              barcodeScannerSettings={{
+                barcodeTypes: ['qr'],
+              }}
+            />
+            <SafeAreaView style={{ flex: 1, justifyContent: 'space-between' }}>
+              <View style={{ padding: 20 }}>
+                <TouchableOpacity 
+                  onPress={() => setShowScanner(false)}
+                  style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Feather name="x" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', textAlign: 'center' }}>
+                  Scan Login QR Code
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textAlign: 'center', marginTop: 8 }}>
+                  Position the code within the frame to verify
+                </Text>
+              </View>
+            </SafeAreaView>
+          </View>
+        </Modal>
+
+        {loading && (
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', zIndex: 100 }]}>
+             <ActivityIndicator size="large" color={colors.accent} />
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );

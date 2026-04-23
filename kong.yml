@@ -3,11 +3,13 @@ _transform: true
 
 services:
   - name: accounts-service
-    url: http://accounts-service:8081
+    url: http://accounts-service:8085 # Matches the internal port of your Spring Boot app
     routes:
       - name: accounts-route
         paths:
           - /accounts
+          - /api # Support both path versions
+          - /auth
 
 plugins:
   - name: cors

@@ -26,3 +26,7 @@ http-sms:
 jwt:
   secret: ${JWT_SECRET:secret_key_placeholder_for_nextbank_digital_platform_2024}
   expiration: 86400000 # 24 hours
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8085}
+  demo-url: https://cute-flowers-find.loca.lt

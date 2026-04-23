@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/hooks/useAuthStore';
 import { Radius } from '@/constants/theme';
+import { accountsApi } from '@/constants/api';
 
 const TYPES = [
   { id: 'SAVINGS', label: 'Savings', desc: 'Earn interest on your deposits', icon: '💰' },
@@ -20,27 +21,14 @@ export default function OpenAccountScreen() {
   const handleOpen = async () => {
     setLoading(true);
     try {
-      const token = useAuthStore.getState().token;
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8085';
-      const res = await fetch(`${apiUrl}/api/accounts/open`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ type: selected })
-      });
+      const res = await accountsApi.openAccount(selected);
       
-      if (res.ok) {
-        Alert.alert('Request Sent', `Your request for a ${selected} account is pending approval by an admin.`, [
-          { text: 'OK', onPress: () => router.back() },
-        ]);
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        Alert.alert('Error', errorData.message || 'Failed to request account');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Network error. Could not request account.');
+      Alert.alert('Request Sent', `Your request for a ${selected} account is pending approval by an admin.`, [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Failed to request account';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }

@@ -1,35 +1,60 @@
 package com.nextbank.accounts.service;
 
 import org.springframework.stereotype.Service;
+import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.QRCodeWriter;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 
 @Service
 public class QrCodeService {
 
-    /**
-     * Generates a unique, secure token for a user that will be encoded into a QR code.
-     */
     public String generateUserQrToken() {
-        // In a real banking app, this might be a signed hash or a more complex token.
-        // For now, we use a secure UUID.
         return java.util.UUID.randomUUID().toString();
     }
 
-    /**
-     * Generates a QR code image as a Base64 string.
-     */
     public String generateQrCodeBase64(String text) {
         try {
-            int width = 300;
-            int height = 300;
-            com.google.zxing.qrcode.QRCodeWriter qrCodeWriter = new com.google.zxing.qrcode.QRCodeWriter();
-            com.google.zxing.common.BitMatrix bitMatrix = qrCodeWriter.encode(text, com.google.zxing.BarcodeFormat.QR_CODE, width, height);
-
-            java.io.ByteArrayOutputStream pngOutputStream = new java.io.ByteArrayOutputStream();
-            com.google.zxing.client.j2se.MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-            byte[] pngData = pngOutputStream.toByteArray();
-            return java.util.Base64.getEncoder().encodeToString(pngData);
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 300, 300);
+            ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+            return Base64.getEncoder().encodeToString(pngOutputStream.toByteArray());
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate QR Code", e);
+        }
+    }
+
+    public byte[] generateQrCodeImage(String text) {
+        try {
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 300, 300);
+            ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+            return pngOutputStream.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate QR Code", e);
+        }
+    }
+
+    public String decodeQrCode(byte[] qrCodeImage) {
+        try {
+            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(qrCodeImage));
+            if (bufferedImage == null) throw new RuntimeException("Invalid image file");
+            LuminanceSource source = new BufferedImageLuminanceSource(bufferedImage);
+            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+            Result result = new MultiFormatReader().decode(bitmap);
+            return result.getText();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not decode QR Code: " + e.getMessage());
         }
     }
 }

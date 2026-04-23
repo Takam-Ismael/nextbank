@@ -17,21 +17,32 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OtpService otpService;
     private final JwtUtil jwtUtil;
+    private final QrCodeService qrCodeService;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public void login(LoginRequest request) {
-        // Step 1: Validate QR Code and Full Name
-        // In reality, the QR Code contains a token that is hashed in the DB.
-        // For simplicity, assuming the qrCode provided matched the hash.
-        Optional<User> userOpt = userRepository.findByFullNameAndQrTokenHash(request.getFullName(), request.getQrCode());
+    public byte[] getQrCodeByToken(String token) {
+        User user = userRepository.findByQrTokenHash(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+        return qrCodeService.generateQrCodeImage(token);
+    }
+
+    public String login(LoginRequest request) {
+        // Step 1: Validate QR Code and Full Name (Case-insensitive name)
+        String fullName = request.getFullName().trim();
+        String qrCode = request.getQrCode().trim();
+
+        Optional<User> userOpt = userRepository.findAll().stream()
+                .filter(u -> u.getFullName().equalsIgnoreCase(fullName) && u.getQrTokenHash().equals(qrCode))
+                .findFirst();
         
         if (userOpt.isEmpty()) {
-            throw new RuntimeException("Invalid credentials or QR code");
+            throw new org.springframework.security.authentication.BadCredentialsException("Invalid name or QR code. Please check your details and try again.");
         }
         
         User user = userOpt.get();
         // Step 2: Generate and send OTP via SMS
         otpService.generateAndSendOtp(user.getPhoneNumber());
+        return user.getPhoneNumber();
     }
 
     public AuthResponse verifyOtp(String phoneNumber, String code) {

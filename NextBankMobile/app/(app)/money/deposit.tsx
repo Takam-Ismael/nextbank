@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert,
@@ -8,25 +8,40 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { Radius } from '@/constants/theme';
 
-const ACCOUNTS = [
-  { id: 1, label: 'CHECKING', code: '0001-CHK', balance: 2847350 },
-  { id: 2, label: 'SAVINGS', code: '0002-SAV', balance: 5120000 },
-];
+import { accountsApi } from '@/constants/api';
 
 const PRESETS = [10000, 25000, 50000, 100000];
 
 export default function DepositScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [selectedAccount, setSelectedAccount] = useState(ACCOUNTS[0]);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [depositing, setDepositing] = useState(false);
   const [amount, setAmount] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await accountsApi.getAccounts();
+      setAccounts(res.data);
+      if (res.data.length > 0) setSelectedAccount(res.data[0]);
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDeposit = async () => {
     if (!amount || Number(amount) <= 0) return;
-    setLoading(true);
+    setDepositing(true);
     setTimeout(() => {
-      setLoading(false);
+      setDepositing(false);
       Alert.alert('Deposit Initiated', `Your deposit of ${Number(amount).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF is being processed via Stripe.`, [
         { text: 'OK', onPress: () => router.back() },
       ]);
@@ -50,22 +65,22 @@ export default function DepositScreen() {
           <View style={{ paddingHorizontal: 20 }}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>SELECT ACCOUNT</Text>
             <View style={styles.accountRow}>
-              {ACCOUNTS.map((acct) => (
+              {accounts.map((acct) => (
                 <TouchableOpacity
                   key={acct.id}
                   style={[
                     styles.accountTab,
                     {
-                      backgroundColor: selectedAccount.id === acct.id ? colors.bgCard : colors.bgCardAlt,
-                      borderColor: selectedAccount.id === acct.id ? colors.accent : colors.border,
-                      borderWidth: selectedAccount.id === acct.id ? 1.5 : 1,
+                      backgroundColor: selectedAccount?.id === acct.id ? colors.bgCard : colors.bgCardAlt,
+                      borderColor: selectedAccount?.id === acct.id ? colors.accent : colors.border,
+                      borderWidth: selectedAccount?.id === acct.id ? 1.5 : 1,
                     },
                   ]}
                   onPress={() => setSelectedAccount(acct)}
                 >
-                  <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>{acct.label}</Text>
+                  <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>{acct.type}</Text>
                   <Text style={[styles.tabBalance, { color: colors.textPrimary }]}>
-                    {acct.balance.toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
+                    {(acct.balance || 0).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -115,7 +130,7 @@ export default function DepositScreen() {
               activeOpacity={0.85}
             >
               <Text style={styles.depositBtnText}>
-                {loading ? 'Processing...' : `Deposit${amount ? ` ${Number(amount).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF` : ''}`}
+                {depositing ? 'Processing...' : `Deposit${amount ? ` ${Number(amount).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF` : ''}`}
               </Text>
             </TouchableOpacity>
           </View>

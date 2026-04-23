@@ -32,6 +32,16 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(adminUser);
             
             log.info("Admin Login: admin / admin123 (hashed)");
+        } else {
+            // Fix existing admin if password is still plaintext (not BCrypt-hashed)
+            userRepository.findByPhoneNumber("admin").ifPresent(admin -> {
+                if (admin.getPasswordHash() != null && !admin.getPasswordHash().startsWith("$2")) {
+                    log.warn("Admin password is plaintext! Re-hashing now...");
+                    admin.setPasswordHash(passwordEncoder.encode("admin123"));
+                    userRepository.save(admin);
+                    log.info("Admin password has been hashed with BCrypt.");
+                }
+            });
         }
     }
 }

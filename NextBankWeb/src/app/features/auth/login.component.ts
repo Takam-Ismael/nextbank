@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'nb-login',
@@ -161,7 +162,7 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMsg.set('');
 
-    this.http.post<any>('http://localhost:8085/api/accounts/auth/admin-login', {
+    this.http.post<any>(`${environment.apiUrl}/api/accounts/auth/admin-login`, {
       username: this.username,
       password: this.password
     }).subscribe({

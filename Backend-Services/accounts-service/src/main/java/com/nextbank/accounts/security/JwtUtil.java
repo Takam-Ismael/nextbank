@@ -16,11 +16,22 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Using a default key for testing if property is missing, though application.yml has one
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
 
     @Value("${jwt.expiration:86400000}")
     private long jwtExpirationInMs;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        // Ensure the secret is at least 256 bits (32 bytes) for HS256
+        byte[] keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            // Pad with zeros if too short
+            byte[] padded = new byte[32];
+            System.arraycopy(keyBytes, 0, padded, 0, keyBytes.length);
+            keyBytes = padded;
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String generateToken(String phoneNumber, String role) {
         Map<String, Object> claims = new HashMap<>();

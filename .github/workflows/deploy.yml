@@ -1,0 +1,41 @@
+name: NextBank Production Deploy
+
+on:
+  push:
+    branches: [ main ] # Trigger only on merge to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Create apps directory if not exists
+            mkdir -p ~/apps/NextBank
+            cd ~/apps/NextBank
+            
+            # Initial clone if directory is empty
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }}.git .
+            fi
+            
+            # Pull latest changes
+            git pull origin main
+            
+            # Create internal network if missing
+            sudo docker network create nextbank-network || true
+            
+            # Build and Restart Services
+            # Note: We use --build to ensure newest code is used
+            sudo docker-compose up -d --build
+            
+            # Cleanup old images
+            sudo docker image prune -f

@@ -28,7 +28,17 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role; // ADMIN or CUSTOMER
 
+    private String email;
+    private String nationalId;
+
+    @Builder.Default
+    private String status = "Active";
+
     private String qrTokenHash;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Builder.Default
+    private java.util.List<Account> accounts = new java.util.ArrayList<>();
 
     @Transient
     private String qrCodeBase64; // Not saved in DB

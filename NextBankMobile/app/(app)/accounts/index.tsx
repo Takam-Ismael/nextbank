@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,16 +12,30 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { Radius } from '@/constants/theme';
 
-const ACCOUNTS = [
-  { id: 1, name: 'Checking', number: 'NB-2024-0001-CHK', balance: 2847350, status: 'ACTIVE', icon: 'wallet', color: '#F5A623', lightBg: '#FEF3D7' },
-  { id: 2, name: 'Savings', number: 'NB-2024-0002-SAV', balance: 5120000, status: 'ACTIVE', icon: 'piggy-bank', color: '#3B82F6', lightBg: '#DBEAFE' },
-  { id: 3, name: 'Business', number: 'NB-2024-0003-BIZ', balance: 12500000, status: 'ACTIVE', icon: 'briefcase', color: '#F59E0B', lightBg: '#FEF3C7' },
-];
+import { accountsApi } from '@/constants/api';
 
 export default function AccountsScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
-  const total = ACCOUNTS.reduce((s, a) => s + a.balance, 0);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await accountsApi.getAccounts();
+      setAccounts(res.data);
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const total = accounts.reduce((s, a) => s + (a.balance || 0), 0);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]} edges={['top']}>
@@ -38,7 +52,7 @@ export default function AccountsScreen() {
         </View>
 
         <View style={{ paddingHorizontal: 20 }}>
-          {ACCOUNTS.map((acct) => (
+          {accounts.map((acct) => (
             <TouchableOpacity
               key={acct.id}
               style={[
@@ -46,26 +60,26 @@ export default function AccountsScreen() {
                 {
                   backgroundColor: colors.bgCard,
                   borderColor: colors.border,
-                  shadowColor: acct.color,
-                  shadowOpacity: isDark ? 0.2 : 0.1,
-                  shadowRadius: 12,
-                  elevation: 4,
                 },
               ]}
               activeOpacity={0.88}
-              onPress={() => router.push({ pathname: '/(app)/accounts/[id]', params: { id: acct.id } })}
+              onPress={() => router.push({ pathname: '/(app)/accounts/[id]', params: { id: acct.accountNumber } })}
             >
               {/* Icon */}
-              <View style={[styles.acctIcon, { backgroundColor: acct.lightBg }]}>
-                <MaterialCommunityIcons name={acct.icon} size={24} color={acct.color} />
+              <View style={[styles.acctIcon, { backgroundColor: acct.type === 'SAVINGS' ? '#DBEAFE' : '#FEF3D7' }]}>
+                <MaterialCommunityIcons 
+                  name={acct.type === 'SAVINGS' ? 'piggy-bank' : 'wallet'} 
+                  size={24} 
+                  color={acct.type === 'SAVINGS' ? '#3B82F6' : '#F5A623'} 
+                />
               </View>
 
               {/* Meta */}
               <View style={styles.acctMeta}>
-                <Text style={[styles.acctName, { color: colors.textPrimary }]}>{acct.name}</Text>
-                <Text style={[styles.acctNumber, { color: colors.textTertiary }]}>{acct.number}</Text>
+                <Text style={[styles.acctName, { color: colors.textPrimary }]}>{acct.type}</Text>
+                <Text style={[styles.acctNumber, { color: colors.textTertiary }]}>{acct.accountNumber}</Text>
                 <View style={styles.statusRow}>
-                  <View style={[styles.statusDot, { backgroundColor: '#22C55E' }]} />
+                  <View style={[styles.statusDot, { backgroundColor: acct.status === 'ACTIVE' ? '#22C55E' : '#F5A623' }]} />
                   <Text style={[styles.statusText, { color: colors.textTertiary }]}>{acct.status}</Text>
                 </View>
               </View>
@@ -73,7 +87,7 @@ export default function AccountsScreen() {
               {/* Balance + arrow */}
               <View style={{ alignItems: 'flex-end', gap: 4 }}>
                 <Text style={[styles.acctBalance, { color: colors.textPrimary }]}>
-                  {acct.balance.toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
+                  {(acct.balance || 0).toLocaleString('fr-CM').replace(/,/g, ' ')} XAF
                 </Text>
                 <Text style={[styles.arrow, { color: colors.textTertiary }]}>›</Text>
               </View>
