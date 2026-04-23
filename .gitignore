@@ -1,1 +1,5 @@
 /NextBank_web/node_modules/
+/NextBank_Mobile/node_modules/
+/NextBank_Mobile/NextBankWeb/node_modules/
+/NextBank_Mobile/NextBankMobile/node_modules/
+/NextBank_web/dist/
