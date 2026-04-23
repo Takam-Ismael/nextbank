@@ -1,0 +1,486 @@
+<div class="cards-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Cards</h1>
+      <p class="page-sub">{{ filtered().length }} bank cards issued</p>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        <button class="toggle-btn" [class.active]="viewMode() === 'table'" (click)="viewMode.set('table')" title="Table view">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>
+          </svg>
+        </button>
+        <button class="toggle-btn" [class.active]="viewMode() === 'grid'" (click)="viewMode.set('grid')" title="Grid view">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </button>
+      </div>
+      <button class="btn-add" (click)="showIssue.set(true)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+          <line x1="12" y1="15" x2="12" y2="19"/><line x1="10" y1="17" x2="14" y2="17"/>
+        </svg>
+        Issue Card
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--total">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ kpis.total }}</div>
+        <div class="kpi-label">Total Cards</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value kpi-value--active">{{ kpis.active }}</div>
+        <div class="kpi-label">Active</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--frozen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value kpi-value--frozen">{{ kpis.frozen }}</div>
+        <div class="kpi-label">Frozen</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--expired">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value kpi-value--expired">{{ kpis.expired }}</div>
+        <div class="kpi-label">Expired</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS BAR -->
+  <div class="filters-bar">
+    <div class="filters-left">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" type="text" placeholder="Search cards..." [(ngModel)]="searchQuery" (ngModelChange)="currentPage.set(1)"/>
+      </div>
+
+      <div class="filter-group">
+        <button *ngFor="let f of statusFilters"
+                class="status-chip"
+                [class.active]="activeStatus() === f.val"
+                [style.--chip-color]="f.color"
+                (click)="setStatus(f.val)">
+          <span class="chip-dot" *ngIf="f.val"></span>
+          {{ f.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="filters-right">
+      <div class="filter-selects">
+        <select class="filter-select" [(ngModel)]="activeType" (ngModelChange)="currentPage.set(1)">
+          <option value="">All Networks</option>
+          <option value="VISA">VISA</option>
+          <option value="MASTERCARD">Mastercard</option>
+        </select>
+        <select class="filter-select" [(ngModel)]="activeAccount" (ngModelChange)="currentPage.set(1)">
+          <option value="">All Accounts</option>
+          <option value="CHECKING">Checking</option>
+          <option value="SAVINGS">Savings</option>
+          <option value="BUSINESS">Business</option>
+        </select>
+      </div>
+
+      <button class="clear-btn" *ngIf="hasFilters()" (click)="clearFilters()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- ── TABLE VIEW ── -->
+  <ng-container *ngIf="viewMode() === 'table'">
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>
+              <button class="sort-btn" (click)="sortBy('customerName')">
+                CARDHOLDER
+                <svg class="sort-icon" [class.asc]="sortKey() === 'customerName' && sortDir() === 'asc'" [class.active]="sortKey() === 'customerName'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M5 12l7-7 7 7"/>
+                </svg>
+              </button>
+            </th>
+            <th>CARD NUMBER</th>
+            <th>TYPE</th>
+            <th>LIMIT</th>
+            <th>ACCOUNT</th>
+            <th>STATUS</th>
+            <th>
+              <button class="sort-btn" (click)="sortBy('expiryYear')">
+                EXPIRY
+                <svg class="sort-icon" [class.asc]="sortKey() === 'expiryYear' && sortDir() === 'asc'" [class.active]="sortKey() === 'expiryYear'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M5 12l7-7 7 7"/>
+                </svg>
+              </button>
+            </th>
+            <th>
+              <button class="sort-btn" (click)="sortBy('issuedDate')">
+                ISSUED
+                <svg class="sort-icon" [class.asc]="sortKey() === 'issuedDate' && sortDir() === 'asc'" [class.active]="sortKey() === 'issuedDate'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M5 12l7-7 7 7"/>
+                </svg>
+              </button>
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let card of paginated(); trackBy: trackById">
+            <td>
+              <div class="cust-cell">
+                <div class="cust-avatar" [style.background]="avatarBg(card.customerInitials)">{{ card.customerInitials }}</div>
+                <div class="cust-info">
+                  <div class="cust-name">{{ card.customerName }}</div>
+                  <div class="cust-email">{{ card.customerEmail }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="card-number-cell">{{ card.cardNumber }}</span>
+            </td>
+            <td>
+              <div class="card-type-badge" [class.visa]="card.cardType === 'VISA'" [class.mc]="card.cardType === 'MASTERCARD'">
+                <svg *ngIf="card.cardType === 'VISA'" width="32" height="12" viewBox="0 0 60 20">
+                  <text x="0" y="16" font-family="Arial" font-weight="900" font-size="18" fill="currentColor" letter-spacing="-1">VISA</text>
+                </svg>
+                <span *ngIf="card.cardType === 'MASTERCARD'" class="mc-circles">
+                  <span class="mc-circle mc-circle--red"></span>
+                  <span class="mc-circle mc-circle--orange"></span>
+                </span>
+                <span *ngIf="card.cardType === 'MASTERCARD'" class="mc-label">MC</span>
+              </div>
+            </td>
+            <td class="balance-cell">{{ card.limit.toLocaleString('fr-FR') }} XAF</td>
+            <td>
+              <span class="account-type-badge" [class]="'acct-' + card.accountType.toLowerCase()">{{ card.accountType }}</span>
+            </td>
+            <td>
+              <span class="status-badge" [ngClass]="statusClass(card.status)">{{ card.status }}</span>
+            </td>
+            <td>
+              <span class="expiry-cell" [class.expiring-soon]="isExpiringSoon(card.expiryMonth, card.expiryYear)">
+                {{ fmtExpiry(card.expiryMonth, card.expiryYear) }}
+                <span class="expiring-badge" *ngIf="isExpiringSoon(card.expiryMonth, card.expiryYear)">Soon</span>
+              </span>
+            </td>
+            <td class="date-cell">{{ card.issuedDate }}</td>
+            <td>
+              <div class="row-actions">
+                <button class="action-btn" title="View card" (click)="viewCard(card)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                <button class="action-btn" [class.freeze]="card.status === 'ACTIVE'" [class.unfreeze]="card.status === 'FROZEN'" [title]="card.status === 'FROZEN' ? 'Unfreeze' : 'Freeze'" (click)="toggleFreeze(card)" *ngIf="card.status !== 'EXPIRED'">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path *ngIf="card.status === 'ACTIVE'" d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+                    <path *ngIf="card.status === 'FROZEN'" d="M8.56 2.9A7 7 0 0 1 19 9v4M5 9A7 7 0 0 1 9.28 2.78M20 17H4M10 21h4"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="filtered().length === 0">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        <p>No cards match your filters.</p>
+        <button class="btn-ghost" (click)="clearFilters()">Clear filters</button>
+      </div>
+
+      <div class="pagination" *ngIf="filtered().length > 0">
+        <span class="page-info">Showing {{ pageStart() }}–{{ pageEnd() }} of {{ filtered().length }}</span>
+        <div class="page-btns">
+          <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">‹</button>
+          <button *ngFor="let p of pageNumbers()" class="page-btn" [class.active]="p === currentPage()" (click)="currentPage.set(p)">{{ p }}</button>
+          <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">›</button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ── GRID VIEW ── -->
+  <ng-container *ngIf="viewMode() === 'grid'">
+    <div class="cards-grid">
+      <div class="bank-card-wrapper" *ngFor="let card of paginated(); trackBy: trackById">
+        <div class="bank-card" [style.background]="cardGradient(card.cardType)" (click)="viewCard(card)">
+          <div class="bank-card__header">
+            <div class="bank-card__bank-name">NextBank</div>
+            <div class="bank-card__chip">
+              <svg width="28" height="22" viewBox="0 0 28 22" fill="none">
+                <rect x="0.5" y="0.5" width="27" height="21" rx="3.5" fill="#d4a956" stroke="#c9a052"/>
+                <rect x="9" y="0.5" width="1" height="21" fill="#c9a052" opacity="0.6"/>
+                <rect x="18" y="0.5" width="1" height="21" fill="#c9a052" opacity="0.6"/>
+                <rect x="0.5" y="7" width="27" height="1" fill="#c9a052" opacity="0.6"/>
+                <rect x="0.5" y="14" width="27" height="1" fill="#c9a052" opacity="0.6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="bank-card__number">{{ card.cardNumber }}</div>
+          <div class="bank-card__footer">
+            <div class="bank-card__holder">
+              <div class="bank-card__label">Card Holder</div>
+              <div class="bank-card__value">{{ card.cardholderName }}</div>
+            </div>
+            <div class="bank-card__expiry">
+              <div class="bank-card__label">Expires</div>
+              <div class="bank-card__value">{{ fmtExpiry(card.expiryMonth, card.expiryYear) }}</div>
+            </div>
+            <div class="bank-card__network">
+              <svg *ngIf="card.cardType === 'VISA'" width="48" height="16" viewBox="0 0 60 20">
+                <text x="0" y="16" font-family="Arial" font-weight="900" font-size="18" fill="white" letter-spacing="-1" opacity="0.9">VISA</text>
+              </svg>
+              <span *ngIf="card.cardType === 'MASTERCARD'" class="mc-circles mc-circles--card">
+                <span class="mc-circle mc-circle--red"></span>
+                <span class="mc-circle mc-circle--orange"></span>
+              </span>
+            </div>
+          </div>
+          <div class="bank-card__status-ribbon" [ngClass]="'ribbon--' + card.status.toLowerCase()">{{ card.status }}</div>
+        </div>
+        <div class="bank-card-meta">
+          <div class="card-meta-info">
+            <div class="cust-avatar sm" [style.background]="avatarBg(card.customerInitials)">{{ card.customerInitials }}</div>
+            <div>
+              <div class="meta-name">{{ card.customerName }}</div>
+              <div class="meta-acct">{{ card.accountType }} · {{ card.accountNumber }}</div>
+            </div>
+          </div>
+          <button class="freeze-mini-btn" [class.freeze]="card.status === 'ACTIVE'" [class.unfreeze]="card.status === 'FROZEN'" (click)="toggleFreeze(card)" *ngIf="card.status !== 'EXPIRED'" [title]="card.status === 'FROZEN' ? 'Unfreeze' : 'Freeze'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+            </svg>
+            {{ card.status === 'FROZEN' ? 'Unfreeze' : 'Freeze' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filtered().length === 0">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+      </svg>
+      <p>No cards match your filters.</p>
+      <button class="btn-ghost" (click)="clearFilters()">Clear filters</button>
+    </div>
+
+    <div class="pagination standalone" *ngIf="filtered().length > 0">
+      <span class="page-info">Showing {{ pageStart() }}–{{ pageEnd() }} of {{ filtered().length }}</span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">‹</button>
+        <button *ngFor="let p of pageNumbers()" class="page-btn" [class.active]="p === currentPage()" (click)="currentPage.set(p)">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">›</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ── VIEW CARD MODAL ── -->
+  <div class="modal-backdrop" *ngIf="selectedCard()" (click)="selectedCard.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Card Details</h2>
+          <p class="modal-sub">{{ selectedCard()!.cardNumber }}</p>
+        </div>
+        <button class="modal-close" (click)="selectedCard.set(null)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-card-preview">
+        <div class="bank-card bank-card--modal" [style.background]="cardGradient(selectedCard()!.cardType)">
+          <div class="bank-card__header">
+            <div class="bank-card__bank-name">NextBank</div>
+            <div class="bank-card__chip">
+              <svg width="28" height="22" viewBox="0 0 28 22" fill="none">
+                <rect x="0.5" y="0.5" width="27" height="21" rx="3.5" fill="#d4a956" stroke="#c9a052"/>
+                <rect x="9" y="0.5" width="1" height="21" fill="#c9a052" opacity="0.6"/>
+                <rect x="18" y="0.5" width="1" height="21" fill="#c9a052" opacity="0.6"/>
+                <rect x="0.5" y="7" width="27" height="1" fill="#c9a052" opacity="0.6"/>
+                <rect x="0.5" y="14" width="27" height="1" fill="#c9a052" opacity="0.6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="bank-card__number">{{ selectedCard()!.cardNumber }}</div>
+          <div class="bank-card__footer">
+            <div class="bank-card__holder">
+              <div class="bank-card__label">Card Holder</div>
+              <div class="bank-card__value">{{ selectedCard()!.cardholderName }}</div>
+            </div>
+            <div class="bank-card__expiry">
+              <div class="bank-card__label">Expires</div>
+              <div class="bank-card__value">{{ fmtExpiry(selectedCard()!.expiryMonth, selectedCard()!.expiryYear) }}</div>
+            </div>
+            <div class="bank-card__network">
+              <svg *ngIf="selectedCard()!.cardType === 'VISA'" width="48" height="16" viewBox="0 0 60 20">
+                <text x="0" y="16" font-family="Arial" font-weight="900" font-size="18" fill="white" letter-spacing="-1" opacity="0.9">VISA</text>
+              </svg>
+              <span *ngIf="selectedCard()!.cardType === 'MASTERCARD'" class="mc-circles mc-circles--card">
+                <span class="mc-circle mc-circle--red"></span>
+                <span class="mc-circle mc-circle--orange"></span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Customer Name</span>
+          <span class="detail-value">{{ selectedCard()!.customerName }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ selectedCard()!.customerEmail }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Account Number</span>
+          <span class="detail-value">{{ selectedCard()!.accountNumber }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Account Type</span>
+          <span class="detail-value">{{ selectedCard()!.accountType }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Card Type</span>
+          <span class="detail-value">{{ selectedCard()!.cardType }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Status</span>
+          <span class="detail-value">
+            <span class="status-badge" [ngClass]="statusClass(selectedCard()!.status)">{{ selectedCard()!.status }}</span>
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Card Number</span>
+          <span class="detail-value" style="font-family: monospace; letter-spacing: 2px;">{{ selectedCard()!.cardNumber }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">CVV</span>
+          <span class="detail-value">***</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Card Limit</span>
+          <span class="detail-value">{{ selectedCard()!.limit.toLocaleString('fr-FR') }} XAF</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Issued Date</span>
+          <span class="detail-value">{{ selectedCard()!.issuedDate }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Expiry</span>
+          <span class="detail-value">{{ fmtExpiry(selectedCard()!.expiryMonth, selectedCard()!.expiryYear) }}</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-freeze" *ngIf="selectedCard()!.status !== 'EXPIRED'" (click)="toggleFreeze(selectedCard()!); selectedCard.set(null)">
+          {{ selectedCard()!.status === 'FROZEN' ? 'Unfreeze Card' : 'Freeze Card' }}
+        </button>
+        <button class="btn-secondary" (click)="selectedCard.set(null)">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ISSUE CARD MODAL ── -->
+  <div class="modal-backdrop" *ngIf="showIssue()" (click)="showIssue.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Issue New Card</h2>
+          <p class="modal-sub">Create a new bank card for a registered customer</p>
+        </div>
+        <button class="modal-close" (click)="showIssue.set(false)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Customer Name *</label>
+            <input type="text" [(ngModel)]="issueForm.customerName" name="customerName" required placeholder="e.g. Amara Nkosi"/>
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" [(ngModel)]="issueForm.email" name="email" placeholder="customer@nextbank.cm"/>
+          </div>
+          <div class="form-group">
+            <label>Account Number *</label>
+            <input type="text" [(ngModel)]="issueForm.accountNumber" name="accountNumber" required placeholder="ACC-XXX-2024"/>
+          </div>
+          <div class="form-group">
+            <label>Account Type</label>
+            <select [(ngModel)]="issueForm.accountType" name="accountType" class="form-select">
+              <option value="CHECKING">Checking</option>
+              <option value="SAVINGS">Savings</option>
+              <option value="BUSINESS">Business</option>
+            </select>
+          </div>
+          <div class="form-group form-group--full">
+            <label>Card Network</label>
+            <div class="card-type-picker">
+              <button type="button" class="card-type-option" [class.selected]="issueForm.cardType === 'VISA'" (click)="issueForm.cardType = 'VISA'">
+                <svg width="42" height="14" viewBox="0 0 60 20">
+                  <text x="0" y="16" font-family="Arial" font-weight="900" font-size="18" fill="currentColor" letter-spacing="-1">VISA</text>
+                </svg>
+              </button>
+              <button type="button" class="card-type-option" [class.selected]="issueForm.cardType === 'MASTERCARD'" (click)="issueForm.cardType = 'MASTERCARD'">
+                <span class="mc-circles">
+                  <span class="mc-circle mc-circle--red"></span>
+                  <span class="mc-circle mc-circle--orange"></span>
+                </span>
+                <span style="font-size:13px; font-weight:600; margin-left: 6px;">Mastercard</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="showIssue.set(false)">Cancel</button>
+        <button class="btn-add" [disabled]="savingIssue()" (click)="submitIssue()">
+          {{ savingIssue() ? 'Issuing...' : 'Issue Card' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
