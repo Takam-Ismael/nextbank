@@ -1,5 +1,6 @@
 package com.nextbank.accounts.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class User {
     @Transient
     private String qrCodeBase64; // Not saved in DB
 
+    @JsonIgnore
     private String passwordHash; // Only for ADMINs
 
     @Column(updatable = false)

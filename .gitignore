@@ -4,12 +4,6 @@
 # Log file
 *.log
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
 # Package Files #
 *.jar
 *.war
@@ -19,8 +13,9 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
+replay_pid*
 
 # Node modules
 node_modules/
@@ -39,8 +34,10 @@ NextBankWeb/dist/
 *.swp
 *.swo
 
-# Documentation & Temp
+# Documentation & Temp (EXCLUDED FROM PUSH)
 temp_doc/
+tempweb/
+temp.zip
 
 # Mobile specific
 NextBankMobile/.expo/

@@ -1,7 +1,6 @@
 package com.nextbank.accounts;
 
 import com.nextbank.accounts.entity.User;
-import com.nextbank.accounts.repository.AccountRepository;
 import com.nextbank.accounts.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
-    private final AccountRepository accountRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Override
