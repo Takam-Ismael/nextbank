@@ -1,5 +1,6 @@
 package com.nextbank.accounts.service;
 
+import com.nextbank.accounts.client.NotificationsClient;
 import com.nextbank.accounts.dto.AdminRegisterRequest;
 import com.nextbank.accounts.entity.Account;
 import com.nextbank.accounts.entity.User;
@@ -21,6 +22,7 @@ public class UserService {
     private final AccountRepository accountRepository;
     private final QrCodeService qrCodeService;
     private final SmsService smsService;
+    private final NotificationsClient notificationsClient;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -69,6 +71,15 @@ public class UserService {
         // 3. Send Initial Welcome SMS (Account Pending)
         smsService.sendRegistrationSms(savedUser.getPhoneNumber(), savedUser.getFullName());
 
+        // 4. Store WELCOME in-app notification
+        notificationsClient.sendNotification(
+            savedUser.getId(),
+            "WELCOME",
+            "Welcome to NextBank!",
+            "Welcome, " + savedUser.getFullName() + "! Your account is being set up. You will receive your login credentials once approved.",
+            null
+        );
+
         return savedUser;
     }
 
@@ -107,6 +118,13 @@ public class UserService {
         // If status changed to Active, send approval SMS
         if (!wasActive && "Active".equals(saved.getStatus())) {
             smsService.sendApprovalSms(saved.getPhoneNumber(), saved.getFullName(), saved.getQrTokenHash(), baseUrl);
+            notificationsClient.sendNotification(
+                saved.getId(),
+                "WELCOME",
+                "Account Approved",
+                "Your NextBank account is now active, " + saved.getFullName() + "! Check your SMS for login credentials.",
+                null
+            );
         }
 
         saved.setQrCodeBase64(qrCodeService.generateQrCodeBase64(saved.getQrTokenHash()));
@@ -124,6 +142,14 @@ public class UserService {
         
         if (!alreadyActive) {
             smsService.sendApprovalSms(saved.getPhoneNumber(), saved.getFullName(), saved.getQrTokenHash(), baseUrl);
+            // In-app notification: account is now active
+            notificationsClient.sendNotification(
+                saved.getId(),
+                "WELCOME",
+                "Account Approved",
+                "Your NextBank account is now active, " + saved.getFullName() + "! Check your SMS for login credentials.",
+                null
+            );
         }
 
         saved.setQrCodeBase64(qrCodeService.generateQrCodeBase64(saved.getQrTokenHash()));

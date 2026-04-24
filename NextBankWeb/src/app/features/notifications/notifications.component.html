@@ -1,0 +1,90 @@
+<div class="notif-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Notifications</h1>
+      <p class="page-sub">All platform notifications — {{ filtered().length }} total</p>
+    </div>
+    <button class="btn-refresh" (click)="load()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Loading notifications...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-state" *ngIf="error() && !loading()">
+    <p>{{ error() }}</p>
+    <button class="btn-refresh" (click)="load()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!loading() && !error()">
+
+    <!-- FILTERS -->
+    <div class="filters-bar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" type="text" placeholder="Search notifications..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)"/>
+      </div>
+      <div class="type-chips">
+        <button *ngFor="let f of typeFilters"
+                class="type-chip"
+                [class.active]="activeType() === f.val"
+                (click)="activeType.set(f.val); currentPage.set(1)">
+          {{ f.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- EMPTY -->
+    <div class="empty-state" *ngIf="filtered().length === 0">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <p>No notifications found.</p>
+    </div>
+
+    <!-- LIST -->
+    <div class="notif-list" *ngIf="filtered().length > 0">
+      <div class="notif-item" *ngFor="let n of paginated(); trackBy: trackById" (click)="markAsRead(n)" style="cursor: pointer;">
+        <div class="notif-icon" [style.background]="getIcon(n.type).bg" [style.color]="getIcon(n.type).color">
+          {{ getIcon(n.type).icon }}
+        </div>
+        <div class="notif-body">
+          <div class="notif-top">
+            <span class="notif-title">{{ n.title }}</span>
+            <span class="notif-type-badge">{{ n.type.replace('_', ' ') }}</span>
+          </div>
+          <p class="notif-msg">{{ n.message }}</p>
+          <div class="notif-meta">
+            <span class="notif-user">User #{{ n.userId }}</span>
+            <span class="notif-time">{{ fmtTime(n.createdAt) }}</span>
+          </div>
+        </div>
+        <div class="notif-read-dot" [class.unread]="!n.isRead"></div>
+      </div>
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination" *ngIf="filtered().length > pageSize">
+      <span class="page-info">Showing {{ pageStart() }}–{{ pageEnd() }} of {{ filtered().length }}</span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">‹</button>
+        <button *ngFor="let p of pageNumbers()" class="page-btn" [class.active]="p === currentPage()" (click)="currentPage.set(p)">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">›</button>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

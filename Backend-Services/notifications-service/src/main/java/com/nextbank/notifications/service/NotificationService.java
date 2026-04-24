@@ -131,6 +131,14 @@ public class NotificationService {
     }
 
     @Transactional
+    public void adminMarkAsRead(Long notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+        notification.setIsRead(true);
+        notificationRepository.save(notification);
+    }
+
+    @Transactional
     public void markAllAsRead(Long userId) {
         List<Notification> unreadNotifications = notificationRepository.findByUserIdAndIsReadFalse(userId);
         unreadNotifications.forEach(notification -> notification.setIsRead(true));
@@ -138,7 +146,7 @@ public class NotificationService {
     }
 
     public Page<NotificationResponse> getAllNotifications(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         Page<Notification> notifications = notificationRepository.findAll(pageable);
         return notifications.map(this::mapToResponse);
     }

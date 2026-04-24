@@ -1,5 +1,6 @@
 package com.nextbank.accounts.service;
 
+import com.nextbank.accounts.client.NotificationsClient;
 import com.nextbank.accounts.dto.AccountDto;
 import com.nextbank.accounts.entity.Account;
 import com.nextbank.accounts.entity.User;
@@ -19,6 +20,7 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final NotificationsClient notificationsClient;
 
     public List<AccountDto> getAccountsByUserPhoneNumber(String phoneNumber) {
         User user = userRepository.findByPhoneNumber(phoneNumber)
@@ -30,6 +32,17 @@ public class AccountService {
 
     public AccountDto getAccountDetails(String accountNumber, String phoneNumber) {
         Account account = getAccountAndVerifyOwnership(accountNumber, phoneNumber);
+        return mapToDto(account);
+    }
+
+    public AccountDto getAccountById(Long accountId, String phoneNumber) {
+        User user = userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        if (!account.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized access to account");
+        }
         return mapToDto(account);
     }
 
@@ -78,7 +91,27 @@ public class AccountService {
                 .type(type)
                 .status(Account.AccountStatus.PENDING)
                 .build();
-        return mapToDto(accountRepository.save(account));
+        Account saved = accountRepository.save(account);
+
+        // Notify the customer their request was received
+        notificationsClient.sendNotification(
+            user.getId(),
+            "DEPOSIT_PENDING",
+            "Account Request Submitted",
+            "Your request to open a " + type.name() + " account has been submitted and is pending approval.",
+            saved.getId()
+        );
+
+        // Notify admin (userId=1 is the seeded admin)
+        notificationsClient.sendNotification(
+            1L,
+            "DEPOSIT_PENDING",
+            "New Account Request",
+            "Customer " + user.getFullName() + " has requested a new " + type.name() + " account. Please review in Compliance.",
+            saved.getId()
+        );
+
+        return mapToDto(saved);
     }
 
     @Transactional
@@ -86,7 +119,36 @@ public class AccountService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         account.setStatus(Account.AccountStatus.ACTIVE);
-        return mapToDto(accountRepository.save(account));
+        Account saved = accountRepository.save(account);
+        notificationsClient.sendNotification(
+            saved.getUser().getId(),
+            "ACCOUNT_APPROVED",
+            "Account Approved",
+            "Your new account " + saved.getAccountNumber() + " has been approved and is now active.",
+            saved.getId()
+        );
+        return mapToDto(saved);
+    }
+
+    @Transactional
+    public AccountDto toggleFreezeAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        boolean wasFrozen = account.getStatus() == Account.AccountStatus.FROZEN;
+        account.setStatus(wasFrozen ? Account.AccountStatus.ACTIVE : Account.AccountStatus.FROZEN);
+        Account saved = accountRepository.save(account);
+
+        // Send in-app notification
+        String type    = wasFrozen ? "ACCOUNT_UNFROZEN" : "ACCOUNT_FROZEN";
+        String title   = wasFrozen ? "Account Reactivated" : "Account Frozen";
+        String message = wasFrozen
+            ? "Your account " + saved.getAccountNumber() + " has been reactivated."
+            : "Your account " + saved.getAccountNumber() + " has been frozen by the bank. Contact support if this is unexpected.";
+
+        notificationsClient.sendNotification(saved.getUser().getId(), type, title, message, saved.getId());
+
+        return mapToDto(saved);
     }
 
     @Transactional
@@ -97,7 +159,14 @@ public class AccountService {
         for (Account acc : accounts) {
             if (acc.getStatus() == Account.AccountStatus.PENDING) {
                 acc.setStatus(Account.AccountStatus.ACTIVE);
-                accountRepository.save(acc);
+                Account saved = accountRepository.save(acc);
+                notificationsClient.sendNotification(
+                    saved.getUser().getId(),
+                    "ACCOUNT_APPROVED",
+                    "Account Approved",
+                    "Your new account " + saved.getAccountNumber() + " has been approved and is now active.",
+                    saved.getId()
+                );
             }
         }
     }
@@ -137,6 +206,8 @@ public class AccountService {
                 .balance(account.getBalance())
                 .type(account.getType().name())
                 .status(account.getStatus().name())
+                .userName(account.getUser() != null ? account.getUser().getFullName() : null)
+                .userId(account.getUser() != null ? account.getUser().getId() : null)
                 .build();
     }
 }

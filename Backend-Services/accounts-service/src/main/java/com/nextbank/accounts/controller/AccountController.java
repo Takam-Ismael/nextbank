@@ -29,6 +29,12 @@ public class AccountController {
         return ResponseEntity.ok(accountService.getAccountDetails(accountNumber, phoneNumber));
     }
 
+    @GetMapping("/id/{accountId}")
+    public ResponseEntity<AccountDto> getAccountById(@PathVariable Long accountId, Authentication authentication) {
+        String phoneNumber = authentication.getName();
+        return ResponseEntity.ok(accountService.getAccountById(accountId, phoneNumber));
+    }
+
     @PostMapping("/{accountNumber}/credit")
     public ResponseEntity<AccountDto> creditAccount(@PathVariable String accountNumber,
                                                     @RequestBody CreditDebitRequest request,

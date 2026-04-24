@@ -37,7 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     Long userId = jwtUtil.extractUserId(token);
 
                     UserAuthenticationToken authentication =
-                            new UserAuthenticationToken(phoneNumber, userId, null, Collections.singletonList(new SimpleGrantedAuthority(role)));
+                            new UserAuthenticationToken(phoneNumber, userId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);

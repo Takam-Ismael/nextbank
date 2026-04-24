@@ -1,30 +1,55 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { Radius } from '@/constants/theme';
+import { accountsApi, cardsApi } from '@/constants/api';
 
-const ACCOUNTS = [
-  { id: 1, label: 'CHECKING', code: '0001-CHK' },
-  { id: 2, label: 'SAVINGS', code: '0002-SAV' },
-  { id: 3, label: 'BUSINESS', code: '0003-BIZ' },
-];
+interface Account {
+  id: number;
+  accountNumber: string;
+  type: string;
+  balance: number;
+  status: string;
+}
 
 export default function RequestCardScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [selectedAccount, setSelectedAccount] = useState(ACCOUNTS[0]);
-  const [loading, setLoading] = useState(false);
 
-  const handleRequest = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert('Card Requested', 'Your new Visa card has been issued and linked to your account.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
-    }, 1400);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const [requesting, setRequesting] = useState(false);
+
+  useEffect(() => {
+    accountsApi.getAccounts()
+      .then(res => {
+        const active = (res.data ?? []).filter((a: Account) => a.status === 'ACTIVE');
+        setAccounts(active);
+        if (active.length > 0) setSelectedAccount(active[0]);
+      })
+      .catch(() => Alert.alert('Error', 'Could not load accounts.'))
+      .finally(() => setLoadingAccounts(false));
+  }, []);
+
+  const handleRequest = async () => {
+    if (!selectedAccount) return;
+    setRequesting(true);
+    try {
+      await cardsApi.requestCard(selectedAccount.id);
+      Alert.alert(
+        'Card Requested ✅',
+        `Your new Visa card has been issued and linked to account ${selectedAccount.accountNumber}.`,
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (e: any) {
+      const msg = e?.response?.data?.message ?? 'Failed to request card. Please try again.';
+      Alert.alert('Error', msg);
+    } finally {
+      setRequesting(false);
+    }
   };
 
   return (
@@ -60,31 +85,45 @@ export default function RequestCardScreen() {
         </View>
 
         <Text style={[styles.label, { color: colors.textSecondary }]}>LINK TO ACCOUNT</Text>
-        {ACCOUNTS.map((acct) => (
-          <TouchableOpacity
-            key={acct.id}
-            style={[
-              styles.acctRow,
-              {
-                backgroundColor: selectedAccount.id === acct.id ? colors.bgCard : colors.bgCardAlt,
-                borderColor: selectedAccount.id === acct.id ? colors.accent : colors.border,
-                borderWidth: selectedAccount.id === acct.id ? 1.5 : 1,
-              },
-            ]}
-            onPress={() => setSelectedAccount(acct)}
-            activeOpacity={0.85}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.acctLabel, { color: colors.textPrimary }]}>{acct.label}</Text>
-              <Text style={[styles.acctCode, { color: colors.textTertiary }]}>{acct.code}</Text>
-            </View>
-            {selectedAccount.id === acct.id && (
-              <View style={[styles.check, { backgroundColor: colors.accent }]}>
-                <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '800' }}>✓</Text>
+
+        {loadingAccounts ? (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator color={colors.accent} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading accounts...</Text>
+          </View>
+        ) : accounts.length === 0 ? (
+          <View style={[styles.infoBox, { backgroundColor: colors.bgCardAlt, borderColor: colors.border }]}>
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+              No active accounts found. Please contact your branch.
+            </Text>
+          </View>
+        ) : (
+          accounts.map((acct) => (
+            <TouchableOpacity
+              key={acct.id}
+              style={[
+                styles.acctRow,
+                {
+                  backgroundColor: selectedAccount?.id === acct.id ? colors.bgCard : colors.bgCardAlt,
+                  borderColor: selectedAccount?.id === acct.id ? colors.accent : colors.border,
+                  borderWidth: selectedAccount?.id === acct.id ? 1.5 : 1,
+                },
+              ]}
+              onPress={() => setSelectedAccount(acct)}
+              activeOpacity={0.85}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.acctLabel, { color: colors.textPrimary }]}>{acct.type}</Text>
+                <Text style={[styles.acctCode, { color: colors.textTertiary }]}>{acct.accountNumber}</Text>
               </View>
-            )}
-          </TouchableOpacity>
-        ))}
+              {selectedAccount?.id === acct.id && (
+                <View style={[styles.check, { backgroundColor: colors.accent }]}>
+                  <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '800' }}>✓</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))
+        )}
 
         <View style={[styles.infoBox, { backgroundColor: colors.bgCardAlt, borderColor: colors.border }]}>
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
@@ -95,12 +134,22 @@ export default function RequestCardScreen() {
         <View style={{ flex: 1 }} />
 
         <TouchableOpacity
-          style={[styles.reqBtn, { backgroundColor: colors.navy, opacity: loading ? 0.7 : 1 }]}
+          style={[
+            styles.reqBtn,
+            {
+              backgroundColor: colors.navy,
+              opacity: (requesting || !selectedAccount || loadingAccounts) ? 0.6 : 1,
+            },
+          ]}
           onPress={handleRequest}
-          disabled={loading}
+          disabled={requesting || !selectedAccount || loadingAccounts}
           activeOpacity={0.85}
         >
-          <Text style={styles.reqBtnText}>{loading ? 'Requesting...' : 'Request Card'}</Text>
+          {requesting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.reqBtnText}>Request Card</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -124,6 +173,8 @@ const styles = StyleSheet.create({
   previewMeta: { fontSize: 9, color: 'rgba(255,255,255,0.5)', fontWeight: '700', textTransform: 'uppercase', marginBottom: 3 },
   previewMetaVal: { fontSize: 12, color: '#FFFFFF', fontWeight: '600' },
   label: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
+  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16 },
+  loadingText: { fontSize: 14 },
   acctRow: {
     flexDirection: 'row', alignItems: 'center',
     borderRadius: Radius.md, padding: 14, marginBottom: 10,

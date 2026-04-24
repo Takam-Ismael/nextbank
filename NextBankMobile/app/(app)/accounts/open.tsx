@@ -15,8 +15,24 @@ const TYPES = [
 export default function OpenAccountScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [selected, setSelected] = useState('SAVINGS');
+  const [selected, setSelected] = useState('');
   const [loading, setLoading] = useState(false);
+  const [availableTypes, setAvailableTypes] = useState(TYPES);
+
+  React.useEffect(() => {
+    const fetchAccs = async () => {
+      try {
+        const res = await accountsApi.getAccounts();
+        const existingTypes = res.data.map((a: any) => a.type);
+        const filtered = TYPES.filter(t => !existingTypes.includes(t.id));
+        setAvailableTypes(filtered);
+        if (filtered.length > 0) {
+          setSelected(filtered[0].id);
+        }
+      } catch (err) {}
+    };
+    fetchAccs();
+  }, []);
 
   const handleOpen = async () => {
     setLoading(true);
@@ -49,7 +65,10 @@ export default function OpenAccountScreen() {
       <View style={{ paddingHorizontal: 20, flex: 1 }}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>Select account type</Text>
 
-        {TYPES.map((t) => (
+        {availableTypes.length === 0 ? (
+          <Text style={{ color: colors.textSecondary, marginTop: 10 }}>You have already opened all available account types.</Text>
+        ) : (
+          availableTypes.map((t) => (
           <TouchableOpacity
             key={t.id}
             style={[
@@ -72,7 +91,8 @@ export default function OpenAccountScreen() {
               </View>
             )}
           </TouchableOpacity>
-        ))}
+          ))
+        )}
 
         <View style={[styles.infoBox, { backgroundColor: colors.bgCardAlt, borderColor: colors.border }]}>
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
@@ -80,14 +100,16 @@ export default function OpenAccountScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.openBtn, { backgroundColor: colors.navy, opacity: loading ? 0.7 : 1 }]}
-          onPress={handleOpen}
-          disabled={loading}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.openBtnText}>{loading ? 'Opening...' : 'Open Account'}</Text>
-        </TouchableOpacity>
+        {availableTypes.length > 0 && (
+          <TouchableOpacity
+            style={[styles.openBtn, { backgroundColor: colors.navy, opacity: loading ? 0.7 : 1 }]}
+            onPress={handleOpen}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.openBtnText}>{loading ? 'Opening...' : 'Open Account'}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );

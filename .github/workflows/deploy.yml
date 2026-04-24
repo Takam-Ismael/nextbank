@@ -1,41 +1,78 @@
-name: NextBank Production Deploy
+name: NextBank Deploy
 
 on:
   push:
-    branches: [ main ] # Trigger only on merge to main
+    branches: [ main ]
 
 jobs:
-  deploy:
+  # ─── JOB 1: Deploy Angular to Netlify ───────────────────
+  deploy-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Deploy via SSH
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        working-directory: ./NextBankWeb
+        run: npm install
+
+      - name: Build Angular (Production)
+        working-directory: ./NextBankWeb
+        run: npx ng build --configuration production
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: ./NextBankWeb/dist/nextbank-admin/browser
+          production-deploy: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  # ─── JOB 2: Deploy Backend to VPS ──────────────────────
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy Backend to VPS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Create apps directory if not exists
+            echo "🚀 Starting NextBank Backend Deployment..."
+
+            # Navigate to project
             mkdir -p ~/apps/NextBank
             cd ~/apps/NextBank
-            
-            # Initial clone if directory is empty
+
+            # Clone or pull latest
             if [ ! -d ".git" ]; then
-              git clone https://github.com/${{ github.repository }}.git .
+              git clone https://github.com/Takam-Ismael/nextbank.git .
             fi
-            
-            # Pull latest changes
             git pull origin main
-            
-            # Create internal network if missing
-            sudo docker network create nextbank-network || true
-            
-            # Build and Restart Services
-            # Note: We use --build to ensure newest code is used
-            sudo docker-compose up -d --build
-            
-            # Cleanup old images
-            sudo docker image prune -f
+
+            # Create .env for production
+            cat > .env << 'ENVEOF'
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            HTTP_SMS_KEY=${{ secrets.HTTP_SMS_KEY }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_DATASOURCE_URL=jdbc:postgresql://accounts-db:5432/accounts_db
+            ENVEOF
+
+            # Deploy with production profile (includes Postgres container)
+            docker compose --profile production up -d --build
+
+            # Cleanup
+            docker image prune -f
+
+            echo "✅ Backend deployed!"
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"

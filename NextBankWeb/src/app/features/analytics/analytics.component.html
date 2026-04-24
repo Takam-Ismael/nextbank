@@ -1,0 +1,229 @@
+<div class="analytics-page">
+
+  <!-- ── PAGE HEADER ──────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-sub">Business intelligence &amp; performance overview</p>
+    </div>
+    <div class="header-controls">
+      <!-- Date range pills -->
+      <div class="range-tabs">
+        <button
+          *ngFor="let r of ranges"
+          class="range-tab"
+          [class.active]="activeRange() === r.val"
+          (click)="setRange(r.val)">
+          {{ r.label }}
+        </button>
+      </div>
+      <!-- Tx type filter -->
+      <select class="type-select" [ngModel]="activeTxType()" (ngModelChange)="setTxType($event)">
+        <option *ngFor="let t of txTypes" [value]="t.val">{{ t.label }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ── KPI CARDS ─────────────────────────────── -->
+  <div class="kpi-grid">
+    <div class="kpi-card" *ngFor="let kpi of kpis()">
+      <div class="kpi-icon" [style.background]="kpi.bg" [style.color]="kpi.color">
+        <!-- Balance icon -->
+        <svg *ngIf="kpi.icon === 'balance'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+        </svg>
+        <!-- Transactions icon -->
+        <svg *ngIf="kpi.icon === 'tx'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+        </svg>
+        <!-- Customers icon -->
+        <svg *ngIf="kpi.icon === 'customers'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <!-- Fees icon -->
+        <svg *ngIf="kpi.icon === 'fees'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">{{ kpi.label }}</div>
+        <div class="kpi-value">{{ kpi.value }}</div>
+        <div class="kpi-delta" [class.positive]="kpi.positive" [class.negative]="!kpi.positive">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="kpi.positive ? 'M12 19V5M5 12l7-7 7 7' : 'M12 5v14M5 12l7 7 7-7'"/>
+          </svg>
+          {{ kpi.delta }} vs last period
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS ROW 1 ───────────────────────────── -->
+  <div class="charts-row charts-row--main">
+
+    <!-- Transactions over time (large) -->
+    <div class="chart-card chart-card--lg">
+      <div class="chart-card__header">
+        <div>
+          <div class="chart-card__title">Transaction Volume</div>
+          <div class="chart-card__sub">Number of transactions over selected period</div>
+        </div>
+        <div class="chart-badge chart-badge--green">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          Live
+        </div>
+      </div>
+      <div class="chart-area">
+        <canvas #txLineCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Revenue growth -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <div class="chart-card__title">Revenue Growth</div>
+          <div class="chart-card__sub">Estimated revenue in k XAF</div>
+        </div>
+      </div>
+      <div class="chart-area">
+        <canvas #revenueBarCanvas></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── CHARTS ROW 2 ───────────────────────────── -->
+  <div class="charts-row">
+
+    <!-- Customer growth -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <div class="chart-card__title">Customer Growth</div>
+          <div class="chart-card__sub">New registrations per period</div>
+        </div>
+      </div>
+      <div class="chart-area chart-area--sm">
+        <canvas #customerCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Card usage distribution -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <div class="chart-card__title">Card Distribution</div>
+          <div class="chart-card__sub">Usage by network &amp; account type</div>
+        </div>
+      </div>
+      <div class="pie-layout">
+        <div class="chart-area chart-area--pie">
+          <canvas #cardPieCanvas></canvas>
+        </div>
+        <div class="pie-legend">
+          <div class="pie-legend-item" *ngFor="let c of cardDistribution()">
+            <span class="pie-dot" [style.background]="c.color"></span>
+            <span class="pie-legend-label">{{ c.label }}</span>
+            <span class="pie-legend-pct">{{ c.value }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── BOTTOM GRID ────────────────────────────── -->
+  <div class="bottom-grid">
+
+    <!-- Transaction Breakdown -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">Transaction Breakdown</div>
+        <div class="section-sub">By type for selected period</div>
+      </div>
+      <div class="breakdown-list">
+        <div class="breakdown-item" *ngFor="let b of breakdown()">
+          <div class="breakdown-icon" [style.background]="b.color + '1a'" [style.color]="b.color">
+            <!-- Deposit -->
+            <svg *ngIf="b.icon === 'arrow-down-circle'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M8 12l4 4 4-4"/><line x1="12" y1="8" x2="12" y2="16"/>
+            </svg>
+            <!-- Withdrawal -->
+            <svg *ngIf="b.icon === 'arrow-up-circle'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4"/><line x1="12" y1="16" x2="12" y2="8"/>
+            </svg>
+            <!-- Transfer -->
+            <svg *ngIf="b.icon === 'refresh-cw'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+          </div>
+          <div class="breakdown-info">
+            <div class="breakdown-type">{{ b.type }}</div>
+            <div class="breakdown-bar-wrap">
+              <div class="breakdown-bar" [style.background]="b.color" [style.width.%]="breakdownPct(b)"></div>
+            </div>
+          </div>
+          <div class="breakdown-stats">
+            <div class="breakdown-count">{{ b.count.toLocaleString('fr-FR') }} txs</div>
+            <div class="breakdown-vol">{{ fmtXAF(b.volume) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Customers -->
+    <div class="section-card section-card--wide">
+      <div class="section-header">
+        <div class="section-title">Top Customers</div>
+        <div class="section-sub">By balance &amp; activity</div>
+      </div>
+      <table class="top-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Transactions</th>
+            <th>Balance</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of topCustomers(); let i = index">
+            <td class="rank-cell">
+              <span class="rank" [class.top3]="i < 3">{{ i + 1 }}</span>
+            </td>
+            <td>
+              <div class="tc-cell">
+                <div class="tc-avatar" [style.background]="avatarBg(c.initials)">{{ c.initials }}</div>
+                <div>
+                  <div class="tc-name">{{ c.name }}</div>
+                  <div class="tc-email">{{ c.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="tx-count-cell">
+              <div class="tx-bar-wrap">
+                <div class="tx-bar" [style.width.%]="(c.transactions / 142) * 100"></div>
+              </div>
+              <span class="tx-count-num">{{ c.transactions }}</span>
+            </td>
+            <td class="balance-cell">{{ fmtBalance(c.balance) }}</td>
+            <td>
+              <span class="trend-badge" [ngClass]="'trend--' + c.trend">
+                <svg *ngIf="c.trend === 'up'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                <svg *ngIf="c.trend === 'down'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                <svg *ngIf="c.trend === 'flat'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                {{ c.trend }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>

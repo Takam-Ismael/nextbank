@@ -1,0 +1,73 @@
+<div class="settings-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Settings</h1>
+      <p class="page-sub">Admin panel configuration</p>
+    </div>
+  </div>
+
+  <!-- APPEARANCE -->
+  <div class="settings-card">
+    <div class="settings-card__header">
+      <div class="settings-card__icon">🎨</div>
+      <div>
+        <div class="settings-card__title">Appearance</div>
+        <div class="settings-card__sub">Customize the admin panel look</div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Dark Mode</div>
+        <div class="settings-hint">Switch between light and dark theme</div>
+      </div>
+      <button class="toggle-btn" [class.on]="theme.isDark()" (click)="theme.toggle()">
+        <span class="toggle-knob"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SERVICE ENDPOINTS -->
+  <div class="settings-card">
+    <div class="settings-card__header">
+      <div class="settings-card__icon">🔌</div>
+      <div>
+        <div class="settings-card__title">Microservice Endpoints</div>
+        <div class="settings-card__sub">Backend service configuration (read-only)</div>
+      </div>
+    </div>
+    <div class="service-list">
+      <div class="service-row" *ngFor="let s of services">
+        <div class="service-info">
+          <div class="service-name">{{ s.name }}</div>
+          <div class="service-url">{{ s.url }}</div>
+        </div>
+        <span class="port-badge">:{{ s.port }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN INFO -->
+  <div class="settings-card">
+    <div class="settings-card__header">
+      <div class="settings-card__icon">👤</div>
+      <div>
+        <div class="settings-card__title">Admin Account</div>
+        <div class="settings-card__sub">Current session information</div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Username</div>
+        <div class="settings-hint">admin</div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Role</div>
+        <div class="settings-hint">ROLE_ADMIN</div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -9,14 +9,14 @@ import {
   ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/hooks/useAuthStore';
 import { SectionHeader } from '@/components/ui';
 import { Radius } from '@/constants/theme';
-import { accountsApi } from '@/constants/api';
+import { accountsApi, notificationsApi } from '@/constants/api';
 
 const { width } = Dimensions.get('window');
 
@@ -109,10 +109,28 @@ export default function DashboardScreen() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     fetchAccounts();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUnreadCount();
+    }, [])
+  );
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await notificationsApi.getMyNotifications();
+      const notifs = res.data?.content || res.data || [];
+      const unread = notifs.filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.log('Failed to fetch notifications count', err);
+    }
+  };
 
   const fetchAccounts = async () => {
     try {
@@ -160,9 +178,11 @@ export default function DashboardScreen() {
               onPress={() => router.push('/(app)/notifications')}
             >
               <Feather name="bell" size={18} color={colors.textPrimary} />
-              <View style={styles.notifBadge}>
-                <Text style={styles.notifBadgeText}>5</Text>
-              </View>
+              {unreadCount > 0 && (
+                <View style={styles.notifBadge}>
+                  <Text style={styles.notifBadgeText}>{unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.avatarBtn, { backgroundColor: colors.navy }]}

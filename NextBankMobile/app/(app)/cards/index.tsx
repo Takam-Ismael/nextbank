@@ -1,55 +1,60 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { Radius } from '@/constants/theme';
+import { cardsApi } from '@/constants/api';
 
-const { width } = Dimensions.get('window');
+interface Card {
+  id: number;
+  userId: number;
+  accountId: number;
+  accountNumber: string;
+  cardLastFour: string;
+  cardType: 'VISA' | 'MASTERCARD';
+  expiryMonth: number;
+  expiryYear: number;
+  cardholderName: string;
+  status: 'ACTIVE' | 'FROZEN';
+  createdAt: string;
+}
 
-const CARDS = [
-  {
-    id: 1, type: 'VISA', lastFour: '7891', holder: 'JOHN DOE',
-    expMonth: 12, expYear: 27, status: 'ACTIVE', accountId: 1,
-    accountName: 'Checking', bg1: '#12203A', bg2: '#1C2F4F',
-  },
-  {
-    id: 2, type: 'MASTERCARD', lastFour: '4521', holder: 'JOHN DOE',
-    expMonth: 6, expYear: 26, status: 'ACTIVE', accountId: 2,
-    accountName: 'Savings', bg1: '#1a1a2e', bg2: '#16213e',
-  },
-];
+const CARD_GRADIENTS: Record<string, [string, string]> = {
+  VISA:       ['#12203A', '#1C2F4F'],
+  MASTERCARD: ['#1a1a2e', '#16213e'],
+};
 
-function VirtualCard({ card, frozen }: { card: typeof CARDS[0]; frozen: boolean }) {
+function VirtualCard({ card }: { card: Card }) {
+  const frozen = card.status === 'FROZEN';
+  const [bg1, bg2] = CARD_GRADIENTS[card.cardType] ?? ['#12203A', '#1C2F4F'];
+
   return (
-    <View style={[styles.virtualCard, { backgroundColor: card.bg1, opacity: frozen ? 0.7 : 1 }]}>
-      {/* Decorative circles */}
+    <View style={[styles.virtualCard, { backgroundColor: bg1, opacity: frozen ? 0.75 : 1 }]}>
       <View style={styles.cardCircle1} />
       <View style={styles.cardCircle2} />
 
-      {/* Top row */}
       <View style={styles.cardTopRow}>
         <Text style={styles.cardBrand}>NextBank</Text>
-        <Text style={styles.cardNetwork}>{card.type}</Text>
+        <Text style={styles.cardNetwork}>{card.cardType}</Text>
       </View>
 
-      {/* Card number */}
       <Text style={styles.cardNumberLabel}>Card Number</Text>
-      <Text style={styles.cardNumber}>
-        {card.lastFour.slice(0, 2)}32  ••••  ••••  {card.lastFour}
-      </Text>
+      <Text style={styles.cardNumber}>••••  ••••  ••••  {card.cardLastFour}</Text>
 
-      {/* Bottom row */}
       <View style={styles.cardBottomRow}>
         <View>
           <Text style={styles.cardMeta}>CARD HOLDER</Text>
-          <Text style={styles.cardMetaVal}>{card.holder}</Text>
+          <Text style={styles.cardMetaVal}>{card.cardholderName}</Text>
         </View>
         <View>
           <Text style={styles.cardMeta}>EXPIRES</Text>
-          <Text style={styles.cardMetaVal}>{card.expMonth.toString().padStart(2, '0')}/{card.expYear}</Text>
+          <Text style={styles.cardMetaVal}>
+            {String(card.expiryMonth).padStart(2, '0')}/{String(card.expiryYear).slice(-2)}
+          </Text>
         </View>
         <View>
           <Text style={styles.cardMeta}>CVV</Text>
@@ -69,107 +74,218 @@ function VirtualCard({ card, frozen }: { card: typeof CARDS[0]; frozen: boolean 
 export default function CardsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [activeCard, setActiveCard] = useState(0);
-  const [frozen, setFrozen] = useState(false);
 
-  const card = CARDS[activeCard];
+  const [cards, setCards] = useState<Card[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [error, setError] = useState('');
+
+  const fetchCards = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    setError('');
+    try {
+      const res = await cardsApi.getMyCards();
+      setCards(res.data ?? []);
+      setActiveIndex(0);
+    } catch (e: any) {
+      setError('Could not load cards. Check your connection.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCards();
+    }, [fetchCards])
+  );
+
+  const onRefresh = () => { setRefreshing(true); fetchCards(true); };
+
+  const handleToggleFreeze = async (card: Card) => {
+    const action = card.status === 'ACTIVE' ? 'freeze' : 'unfreeze';
+    Alert.alert(
+      `${action.charAt(0).toUpperCase() + action.slice(1)} Card`,
+      `Are you sure you want to ${action} your card ending in ${card.cardLastFour}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: action.charAt(0).toUpperCase() + action.slice(1),
+          style: action === 'freeze' ? 'destructive' : 'default',
+          onPress: async () => {
+            setTogglingId(card.id);
+            try {
+              const res = await cardsApi.freezeCard(card.id);
+              setCards(prev => prev.map(c => c.id === res.data.id ? res.data : c));
+            } catch {
+              Alert.alert('Error', `Failed to ${action} card. Please try again.`);
+            } finally {
+              setTogglingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]} edges={['top']}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading cards...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]} edges={['top']}>
+        <View style={styles.centered}>
+          <Text style={styles.errorEmoji}>⚠️</Text>
+          <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error}</Text>
+          <TouchableOpacity style={[styles.retryBtn, { backgroundColor: colors.accent }]} onPress={() => fetchCards()}>
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const activeCard = cards[activeIndex];
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>My Cards</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {CARDS.length} active cards
+            {cards.length} card{cards.length !== 1 ? 's' : ''}
           </Text>
         </View>
 
-        {/* Card widget */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-          <VirtualCard card={card} frozen={frozen} />
-        </View>
-
-        {/* Pagination dots */}
-        <View style={styles.dotsRow}>
-          {CARDS.map((_, i) => (
-            <TouchableOpacity
-              key={i}
-              onPress={() => { setActiveCard(i); setFrozen(false); }}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: activeCard === i ? colors.accent : colors.border,
-                  width: activeCard === i ? 22 : 8,
-                },
-              ]}
-            />
-          ))}
-        </View>
-
-        {/* Action buttons — Show Details / Freeze / Settings */}
-        <View style={[styles.actionsRow, { paddingHorizontal: 20 }]}>
-          {[
-            { icon: '👁', label: 'Show Details', onPress: () => {} },
-            {
-              icon: frozen ? '🔓' : '🔒',
-              label: frozen ? 'Unfreeze' : 'Freeze',
-              onPress: () => setFrozen(!frozen),
-              accent: true,
-            },
-            { icon: '⚙', label: 'Settings', onPress: () => {} },
-          ].map((btn, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[
-                styles.actionBtn,
-                {
-                  backgroundColor: colors.bgCard,
-                  borderColor: colors.border,
-                },
-              ]}
-              onPress={btn.onPress}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.actionIcon, { color: btn.accent ? colors.accent : colors.textSecondary }]}>
-                {btn.icon}
-              </Text>
-              <Text style={[styles.actionLabel, { color: btn.accent ? colors.accent : colors.textSecondary }]}>
-                {btn.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Details */}
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-          <View style={[styles.detailCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-            {[
-              { label: 'Linked Account', value: card.accountName },
-              { label: 'Card Type', value: card.type },
-              { label: 'Status', value: frozen ? 'FROZEN' : 'ACTIVE', isStatus: true, frozen },
-            ].map((row, i, arr) => (
-              <View key={i}>
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: colors.accent }]}>{row.label}</Text>
-                  <Text style={[
-                    styles.detailValue,
-                    {
-                      color: row.isStatus
-                        ? (row.frozen ? '#EF4444' : '#22C55E')
-                        : colors.textPrimary,
-                      fontWeight: row.isStatus ? '700' : '600',
-                    },
-                  ]}>
-                    {row.value}
-                  </Text>
-                </View>
-                {i < arr.length - 1 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
-              </View>
-            ))}
+        {cards.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyEmoji}>💳</Text>
+            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Cards Yet</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+              Request your first bank card below
+            </Text>
           </View>
+        ) : (
+          <>
+            {/* Card widget */}
+            <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+              <VirtualCard card={activeCard} />
+            </View>
 
-          {/* Request new card */}
+            {/* Pagination dots */}
+            {cards.length > 1 && (
+              <View style={styles.dotsRow}>
+                {cards.map((_, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => setActiveIndex(i)}
+                    style={[
+                      styles.dot,
+                      {
+                        backgroundColor: activeIndex === i ? colors.accent : colors.border,
+                        width: activeIndex === i ? 22 : 8,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+            )}
+
+            {/* Action buttons */}
+            <View style={[styles.actionsRow, { paddingHorizontal: 20 }]}>
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
+                onPress={() => router.push(`/(app)/cards/${activeCard.id}` as any)}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.actionIcon, { color: colors.textSecondary }]}>👁</Text>
+                <Text style={[styles.actionLabel, { color: colors.textSecondary }]}>Details</Text>
+              </TouchableOpacity>
+
+              {/* 
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
+                onPress={() => handleToggleFreeze(activeCard)}
+                disabled={togglingId === activeCard.id}
+                activeOpacity={0.85}
+              >
+                {togglingId === activeCard.id ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
+                  <Text style={[styles.actionIcon, { color: colors.accent }]}>
+                    {activeCard.status === 'FROZEN' ? '🔓' : '🔒'}
+                  </Text>
+                )}
+                <Text style={[styles.actionLabel, { color: colors.accent }]}>
+                  {activeCard.status === 'FROZEN' ? 'Unfreeze' : 'Freeze'}
+                </Text>
+              </TouchableOpacity>
+              */}
+
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
+                onPress={() => router.push('/(app)/cards/request')}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.actionIcon, { color: colors.textSecondary }]}>➕</Text>
+                <Text style={[styles.actionLabel, { color: colors.textSecondary }]}>New Card</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Details */}
+            <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+              <View style={[styles.detailCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+                {[
+                  { label: 'Account Number', value: activeCard.accountNumber },
+                  { label: 'Card Network',   value: activeCard.cardType },
+                  { label: 'Card ID',        value: `#${activeCard.id}` },
+                  {
+                    label: 'Status',
+                    value: activeCard.status,
+                    isStatus: true,
+                    frozen: activeCard.status === 'FROZEN',
+                  },
+                ].map((row, i, arr) => (
+                  <View key={i}>
+                    <View style={styles.detailRow}>
+                      <Text style={[styles.detailLabel, { color: colors.accent }]}>{row.label}</Text>
+                      <Text style={[
+                        styles.detailValue,
+                        {
+                          color: row.isStatus
+                            ? (row.frozen ? '#EF4444' : '#22C55E')
+                            : colors.textPrimary,
+                          fontWeight: row.isStatus ? '700' : '600',
+                        },
+                      ]}>
+                        {row.value}
+                      </Text>
+                    </View>
+                    {i < arr.length - 1 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
+                  </View>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Request new card */}
+        <View style={{ paddingHorizontal: 20, marginTop: cards.length === 0 ? 16 : 0 }}>
           <TouchableOpacity
             style={[styles.requestBtn, { borderColor: colors.border }]}
             onPress={() => router.push('/(app)/cards/request')}
@@ -185,16 +301,22 @@ export default function CardsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 40 },
+  loadingText: { fontSize: 14, marginTop: 8 },
+  errorEmoji: { fontSize: 40 },
+  errorText: { fontSize: 14, textAlign: 'center' },
+  retryBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10, marginTop: 8 },
+  retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
   title: { fontSize: 26, fontWeight: '800' },
   subtitle: { fontSize: 14, marginTop: 2 },
+  emptyState: { alignItems: 'center', paddingVertical: 48, gap: 8 },
+  emptyEmoji: { fontSize: 48 },
+  emptyTitle: { fontSize: 18, fontWeight: '700' },
+  emptySubtitle: { fontSize: 14, textAlign: 'center' },
   virtualCard: {
-    borderRadius: Radius['2xl'],
-    padding: 22,
-    height: 200,
-    overflow: 'hidden',
-    position: 'relative',
-    justifyContent: 'space-between',
+    borderRadius: Radius['2xl'], padding: 22, height: 200,
+    overflow: 'hidden', position: 'relative', justifyContent: 'space-between',
   },
   cardCircle1: {
     position: 'absolute', right: -30, top: -30,
@@ -217,8 +339,7 @@ const styles = StyleSheet.create({
   frozenOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
     borderRadius: Radius['2xl'],
   },
   frozenText: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },

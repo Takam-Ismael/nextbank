@@ -52,6 +52,11 @@ public class AdminController {
         return ResponseEntity.ok(userService.approveUser(userId));
     }
 
+    @PatchMapping("/{accountId}/freeze")
+    public ResponseEntity<AccountDto> freezeAccount(@PathVariable Long accountId) {
+        return ResponseEntity.ok(accountService.toggleFreezeAccount(accountId));
+    }
+
     @GetMapping("/stats")
     public ResponseEntity<java.util.Map<String, Object>> getStats() {
         return ResponseEntity.ok(accountService.getGlobalStats());

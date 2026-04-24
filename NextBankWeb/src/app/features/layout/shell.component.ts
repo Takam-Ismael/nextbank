@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/services/theme.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface NavItem {
   path: string;
@@ -86,11 +87,11 @@ interface NavItem {
           </div>
 
           <div class="topbar-actions">
-            <button class="icon-btn" title="Notifications">
+            <button class="icon-btn" title="Notifications" routerLink="/notifications">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
               </svg>
-              <span class="notif-badge">5</span>
+              <span class="notif-badge" *ngIf="unreadCount() > 0">{{ unreadCount() }}</span>
             </button>
             <button class="icon-btn theme-toggle" (click)="theme.toggle()" [title]="theme.isDark() ? 'Light mode' : 'Dark mode'">
               <svg *ngIf="theme.isDark()" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -333,12 +334,32 @@ interface NavItem {
     .page-content { flex: 1; overflow-y: auto; padding: 24px; }
   `],
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   toggleSidebarCollapsed() { this.sidebarCollapsed.update((v: boolean) => !v); }
   theme = inject(ThemeService);
   sidebarCollapsed = signal(false);
   searchQuery = '';
   private router = inject(Router);
+  private notifService = inject(NotificationService);
+  unreadCount = signal(0);
+
+  ngOnInit() {
+    this.fetchUnreadNotifications();
+    this.notifService.unreadUpdated$.subscribe(() => {
+      this.fetchUnreadNotifications();
+    });
+  }
+
+  fetchUnreadNotifications() {
+    this.notifService.getAllNotifications(0, 100).subscribe({
+      next: (res) => {
+        const notifs = res?.content ?? (Array.isArray(res) ? res : []);
+        const unread = notifs.filter((n: any) => !n.isRead).length;
+        this.unreadCount.set(unread);
+      },
+      error: (err) => console.error('Failed to load notifications', err)
+    });
+  }
 
   logout() {
     localStorage.removeItem('admin_token');

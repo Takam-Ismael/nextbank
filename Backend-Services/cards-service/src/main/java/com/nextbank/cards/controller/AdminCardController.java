@@ -21,4 +21,9 @@ public class AdminCardController {
     public ResponseEntity<Page<CardResponseDto>> getAllCards(Pageable pageable) {
         return ResponseEntity.ok(cardService.getAllCards(pageable));
     }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/{id}/freeze")
+    public ResponseEntity<CardResponseDto> toggleFreeze(@org.springframework.web.bind.annotation.PathVariable Long id) {
+        return ResponseEntity.ok(cardService.adminToggleFreeze(id));
+    }
 }

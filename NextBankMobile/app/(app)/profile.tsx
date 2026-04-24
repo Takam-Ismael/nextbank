@@ -125,7 +125,7 @@ export default function ProfileScreen() {
             icon="account"
             label="Personal Information"
             sub="Name, email, phone"
-            onPress={() => {}}
+            onPress={() => Alert.alert('Personal Info', 'To update your personal information, please contact NextBank support or visit a branch.')}
           />
           <MenuItem
             icon="credit-card"
@@ -137,7 +137,7 @@ export default function ProfileScreen() {
             icon="shield"
             label="Security"
             sub="QR code, login settings"
-            onPress={() => {}}
+            onPress={() => Alert.alert('Security', 'Security settings (biometrics, password change) will be available in the next update.')}
           />
         </View>
 
@@ -172,13 +172,13 @@ export default function ProfileScreen() {
             icon="help-circle"
             label="Help Center"
             sub="FAQs and support"
-            onPress={() => {}}
+            onPress={() => Alert.alert('Help Center', 'Our support team is available 24/7 at support@nextbank.cm')}
           />
           <MenuItem
             icon="file-document"
             label="Terms & Privacy"
             sub="Legal documents"
-            onPress={() => {}}
+            onPress={() => Alert.alert('Terms & Privacy', 'Our terms of service are available on the NextBank website.')}
           />
         </View>
 

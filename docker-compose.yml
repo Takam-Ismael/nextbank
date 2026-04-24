@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. PostgreSQL Database
+  # 1. PostgreSQL Database (used on VPS; locally you use your Windows pgAdmin)
   accounts-db:
     image: postgres:15-alpine
     container_name: accounts-db
@@ -10,12 +10,14 @@ services:
     environment:
       POSTGRES_DB: accounts_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
+    profiles:
+      - production
 
-  # 2. Spring Boot Backend
+  # 2. Accounts Service
   accounts-service:
     build: 
       context: ./Backend-Services/accounts-service
@@ -23,19 +25,59 @@ services:
     container_name: accounts-service
     networks:
       - nextbank-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://accounts-db:5432/accounts_db
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://host.docker.internal:5432/accounts_db}
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-root}
       JWT_SECRET: ${JWT_SECRET:-secret_key_placeholder_for_nextbank_digital_platform_2024}
-      HTTP_SMS_KEY: ${HTTP_SMS_KEY:-PLACEHOLDER_KEY}
-    depends_on:
-      - accounts-db
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:8087
+      CARDS_SERVICE_URL: http://cards-service:8086
     restart: always
 
-  # 3. Kong API Gateway
+  # 3. Cards Service
+  cards-service:
+    build: 
+      context: ./Backend-Services/cards-service
+      dockerfile: Dockerfile
+    container_name: cards-service
+    networks:
+      - nextbank-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://host.docker.internal:5432/accounts_db}
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-secret_key_placeholder_for_nextbank_digital_platform_2024}
+      ACCOUNTS_SERVICE_URL: http://accounts-service:8085
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:8087
+    depends_on:
+      - accounts-service
+    restart: always
+
+  # 4. Notifications Service
+  notifications-service:
+    build: 
+      context: ./Backend-Services/notifications-service
+      dockerfile: Dockerfile
+    container_name: notifications-service
+    networks:
+      - nextbank-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://host.docker.internal:5432/accounts_db}
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-secret_key_placeholder_for_nextbank_digital_platform_2024}
+      FIREBASE_ENABLED: "false"
+    restart: always
+
+  # 5. Kong API Gateway
   nextbank-gateway:
-    image: kong:3.4-alpine
+    image: kong:latest
     container_name: nextbank-gateway
     networks:
       - nextbank-network
@@ -49,6 +91,8 @@ services:
       - "8000:8000"
     depends_on:
       - accounts-service
+      - cards-service
+      - notifications-service
     restart: always
 
 networks:

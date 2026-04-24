@@ -27,8 +27,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "OTP sent successfully.",
-                "phoneNumber", phoneNumber
-        ));
+                "phoneNumber", phoneNumber));
     }
 
     @PostMapping("/upload-qr")
@@ -63,7 +62,8 @@ public class AuthController {
         byte[] image = authService.getQrCodeByToken(token);
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.IMAGE_PNG)
-                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"NextBank_Login_QR.png\"")
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"NextBank_Login_QR.png\"")
                 .body(image);
     }
 }

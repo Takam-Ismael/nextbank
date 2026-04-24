@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -20,9 +20,11 @@ export default function AccountsScreen() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAccounts();
+    }, [])
+  );
 
   const fetchAccounts = async () => {
     try {
@@ -95,13 +97,14 @@ export default function AccountsScreen() {
           ))}
 
           {/* Open New Account */}
-          <TouchableOpacity
-            style={[styles.openBtn, { borderColor: colors.border }]}
-            onPress={() => router.push('/(app)/accounts/open')}
-            activeOpacity={0.85}
+          {accounts.length < 3 && (
+            <TouchableOpacity
+              style={[styles.openBtn, { borderColor: colors.border }]}
+              onPress={() => router.push('/(app)/accounts/open')}
           >
             <Text style={[styles.openBtnText, { color: colors.textSecondary }]}>+ Open New Account</Text>
           </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

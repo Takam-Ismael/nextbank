@@ -26,7 +26,7 @@ public class AccountsClient {
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
-                    accountsServiceUrl + "/api/accounts/" + accountId,
+                    accountsServiceUrl + "/api/accounts/id/" + accountId,
                     org.springframework.http.HttpMethod.GET,
                     entity,
                     Map.class

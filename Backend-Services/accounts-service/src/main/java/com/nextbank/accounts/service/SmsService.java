@@ -45,19 +45,22 @@ public class SmsService {
     }
 
     public boolean sendRegistrationSms(String phoneNumber, String fullName) {
-        String message = String.format("Welcome to NextBank, %s! Your application is being reviewed. You will receive an SMS once your account is active.", fullName);
+        String message = String.format(
+                "Welcome to NextBank, %s! Your application is being reviewed. You will receive an SMS once your account is active.",
+                fullName);
         return sendSms(phoneNumber, message);
     }
 
     public boolean sendApprovalSms(String phoneNumber, String fullName, String qrToken, String baseUrl) {
         String effectiveBaseUrl = baseUrl;
-        
+
         // Priority 1: Use Ngrok/Demo URL if you provided one
         if (demoUrl != null && !demoUrl.isEmpty()) {
             effectiveBaseUrl = demoUrl;
             log.info("Using Demo/Ngrok URL for SMS: {}", effectiveBaseUrl);
         }
-        // Priority 2: If it's localhost, try to replace it with the computer's real network IP
+        // Priority 2: If it's localhost, try to replace it with the computer's real
+        // network IP
         else if (baseUrl.contains("localhost") || baseUrl.contains("127.0.0.1")) {
             try {
                 String localIp = InetAddress.getLocalHost().getHostAddress();
@@ -70,12 +73,11 @@ public class SmsService {
 
         String qrLink = effectiveBaseUrl + "/api/accounts/auth/qr/" + qrToken;
         String message = String.format(
-            "Welcome to NextBank, %s! Your account is ACTIVE.\n\n" +
-            "1. Download your Login QR: %s\n" +
-            "2. Or use this SECURE LOGIN CODE: %s\n\n" +
-            "Open the NextBank app to scan or enter your code manually.",
-            fullName, qrLink, qrToken
-        );
+                "Welcome to NextBank, %s! Your account is ACTIVE.\n\n" +
+                        "1. Download your Login QR: %s\n" +
+                        "2. Or use this SECURE LOGIN CODE: %s\n\n" +
+                        "Open the NextBank app to scan or enter your code manually.",
+                fullName, qrLink, qrToken);
         return sendSms(phoneNumber, message);
     }
 
@@ -106,8 +108,7 @@ public class SmsService {
                     url,
                     HttpMethod.POST,
                     request,
-                    String.class
-            );
+                    String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("SMS sent successfully to: {}", maskPhone(phoneNumber));
@@ -124,7 +125,8 @@ public class SmsService {
     }
 
     private String maskPhone(String phone) {
-        if (phone == null || phone.length() < 4) return "****";
+        if (phone == null || phone.length() < 4)
+            return "****";
         return phone.substring(0, phone.length() - 4).replaceAll("\\d", "*") + phone.substring(phone.length() - 4);
     }
 }

@@ -1,0 +1,64 @@
+.settings-page { display: flex; flex-direction: column; gap: 20px; max-width: 700px; }
+
+.page-header { margin-bottom: 4px; }
+.page-title  { font-size: 26px; font-weight: 800; color: var(--text-primary); }
+.page-sub    { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+.settings-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+}
+
+.settings-card__header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 20px; border-bottom: 1px solid var(--border);
+}
+.settings-card__icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: var(--bg-input); display: flex; align-items: center;
+  justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.settings-card__title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.settings-card__sub   { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+.settings-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  &:last-child { border-bottom: none; }
+}
+.settings-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.settings-hint  { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
+
+// Toggle switch
+.toggle-btn {
+  width: 48px; height: 26px; border-radius: 13px;
+  background: var(--border); border: none; cursor: pointer;
+  position: relative; transition: background 0.2s; flex-shrink: 0;
+  &.on { background: #1e3a6e; }
+}
+.toggle-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  .toggle-btn.on & { transform: translateX(22px); }
+}
+
+// Service list
+.service-list { padding: 8px 0; }
+.service-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  &:last-child { border-bottom: none; }
+}
+.service-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.service-url  { font-size: 12px; color: var(--text-tertiary); font-family: monospace; margin-top: 2px; }
+.port-badge {
+  padding: 4px 10px; border-radius: 8px;
+  background: #eef2ff; color: #1e3a6e;
+  font-size: 12px; font-weight: 700; font-family: monospace;
+}
+
+:host-context([data-theme="dark"]) {
+  .port-badge { background: rgba(30,58,110,0.3); color: #93c5fd; }
+}

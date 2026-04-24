@@ -1,5 +1,5 @@
 server:
-  port: 8084
+  port: 8085
 
 spring:
   application:
@@ -21,12 +21,15 @@ spring:
 
 http-sms:
   api-key: ${HTTP_SMS_KEY:uk_SnKH4u3DNnSsd5OvaL6PtNuDo0u6IKwKpsproigWnpJsaJjPLwIVFt20Z-ZoKQe6}
-  phone-number: ${HTTP_SMS_PHONE:+237693671898}
+  phone-number: ${HTTP_SMS_PHONE:+237693671898} 
 
 jwt:
   secret: ${JWT_SECRET:secret_key_placeholder_for_nextbank_digital_platform_2024}
   expiration: 86400000 # 24 hours
 
+notifications-service:
+  url: ${NOTIFICATIONS_SERVICE_URL:http://localhost:8087}
+
 app:
   base-url: ${APP_BASE_URL:http://localhost:8084}
-  demo-url: https://cute-flowers-find.loca.lt
+  demo-url: https://nextbank-admin-xyz.loca.lt

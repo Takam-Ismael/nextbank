@@ -1,0 +1,163 @@
+<div class="compliance-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Compliance</h1>
+      <p class="page-sub">Review and approve pending accounts and customers</p>
+    </div>
+    <button class="btn-refresh" (click)="load()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Loading compliance data...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-state" *ngIf="error() && !loading()">
+    <p>{{ error() }}</p>
+    <button class="btn-refresh" (click)="load()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!loading() && !error()">
+
+    <!-- KPI STRIP -->
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#fef3c7; color:#d97706;">⏳</div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ pendingAccounts().length }}</div>
+          <div class="kpi-label">Pending Accounts</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#dbeafe; color:#2563eb;">👤</div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ allCustomers().length }}</div>
+          <div class="kpi-label">Pending Customers</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS + SEARCH -->
+    <div class="toolbar">
+      <div class="tabs">
+        <button class="tab" [class.active]="activeTab() === 'accounts'" (click)="activeTab.set('accounts')">
+          Pending Accounts
+          <span class="badge" *ngIf="pendingAccounts().length > 0">{{ pendingAccounts().length }}</span>
+        </button>
+        <button class="tab" [class.active]="activeTab() === 'customers'" (click)="activeTab.set('customers')">
+          Pending Customers
+          <span class="badge" *ngIf="allCustomers().length > 0">{{ allCustomers().length }}</span>
+        </button>
+      </div>
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" type="text" placeholder="Search..." [(ngModel)]="searchQuery"/>
+      </div>
+    </div>
+
+    <!-- PENDING ACCOUNTS TAB -->
+    <ng-container *ngIf="activeTab() === 'accounts'">
+      <div class="table-card" *ngIf="filteredAccounts().length > 0; else emptyAccounts">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ACCOUNT NUMBER</th>
+              <th>CUSTOMER</th>
+              <th>TYPE</th>
+              <th>BALANCE</th>
+              <th>STATUS</th>
+              <th>CREATED</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of filteredAccounts()">
+              <td><span class="mono">{{ a.accountNumber }}</span></td>
+              <td><div style="font-weight: 500;">{{ a.userName || 'Unknown' }}</div></td>
+              <td><span class="type-badge" [class]="'type-' + a.type?.toLowerCase()">{{ a.type }}</span></td>
+              <td class="balance-cell">{{ (a.balance || 0).toLocaleString('fr-FR') }} XAF</td>
+              <td><span class="status-badge status-pending">PENDING</span></td>
+              <td class="date-cell">{{ a.createdAt | date:'MMM dd, yyyy' }}</td>
+              <td>
+                <button class="btn-approve"
+                        [disabled]="processingId() === a.id"
+                        (click)="approveAccount(a)">
+                  {{ processingId() === a.id ? 'Approving...' : 'Approve' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #emptyAccounts>
+        <div class="empty-state">
+          <span style="font-size:40px">✅</span>
+          <p>No pending accounts — all clear!</p>
+        </div>
+      </ng-template>
+    </ng-container>
+
+    <!-- PENDING CUSTOMERS TAB -->
+    <ng-container *ngIf="activeTab() === 'customers'">
+      <div class="table-card" *ngIf="filteredCustomers().length > 0; else emptyCustomers">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>CUSTOMER</th>
+              <th>PHONE</th>
+              <th>STATUS</th>
+              <th>REGISTERED</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filteredCustomers()">
+              <td>
+                <div class="cust-cell">
+                  <div class="cust-avatar" [style.background]="avatarBg(c.fullName)">{{ initials(c.fullName) }}</div>
+                  <div>
+                    <div class="cust-name">{{ c.fullName }}</div>
+                    <div class="cust-email">{{ c.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="mono">{{ c.phoneNumber }}</td>
+              <td>
+                <span class="status-badge" [class]="c.status === 'Pending' ? 'status-pending' : 'status-review'">
+                  {{ c.status }}
+                </span>
+              </td>
+              <td class="date-cell">{{ c.createdAt | date:'MMM dd, yyyy' }}</td>
+              <td>
+                <button class="btn-approve"
+                        [disabled]="processingId() === c.id"
+                        (click)="approveUser(c)">
+                  {{ processingId() === c.id ? 'Approving...' : 'Approve & Activate' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #emptyCustomers>
+        <div class="empty-state">
+          <span style="font-size:40px">✅</span>
+          <p>No pending customers — all clear!</p>
+        </div>
+      </ng-template>
+    </ng-container>
+
+  </ng-container>
+</div>

@@ -43,9 +43,8 @@ public class CardService {
         }
 
         String accountNumber = (String) accountDetails.get("accountNumber");
-        // We might not have cardholderName from account, usually it's from User details.
-        // For simplicity, passing a placeholder or extracting if available.
-        String cardholderName = "Customer " + userId;
+        String userName = (String) accountDetails.get("userName");
+        String cardholderName = userName != null ? userName : "Customer " + userId;
 
         // 3. Generate 16-digit Luhn-valid card number (Prefix 4 = Visa)
         String cardNumber = LuhnValidator.generate("4");
@@ -123,6 +122,22 @@ public class CardService {
 
     public org.springframework.data.domain.Page<CardResponseDto> getAllCards(org.springframework.data.domain.Pageable pageable) {
         return cardRepository.findAll(pageable).map(this::mapToDto);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public CardResponseDto adminToggleFreeze(Long cardId) {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Card not found."));
+
+        if ("ACTIVE".equals(card.getStatus())) {
+            card.setStatus("FROZEN");
+            notificationsClient.sendNotification(card.getUserId(), "CARD_FROZEN", "Card Frozen", "Your card ending in " + card.getCardLastFour() + " has been frozen by the bank.", card.getId());
+        } else if ("FROZEN".equals(card.getStatus())) {
+            card.setStatus("ACTIVE");
+            notificationsClient.sendNotification(card.getUserId(), "CARD_UNFROZEN", "Card Unfrozen", "Your card ending in " + card.getCardLastFour() + " has been unfrozen by the bank.", card.getId());
+        }
+
+        return mapToDto(cardRepository.save(card));
     }
 
     private CardResponseDto mapToDto(Card card) {

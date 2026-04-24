@@ -23,4 +23,11 @@ public class AdminNotificationController {
         Page<NotificationResponse> notifications = notificationService.getAllNotifications(page, size);
         return ResponseEntity.ok(notifications);
     }
+
+    // PATCH /api/notifications/admin/{id}/read - Admin marks a notification as read
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<java.util.Map<String, String>> markAsRead(@PathVariable Long id) {
+        notificationService.adminMarkAsRead(id);
+        return ResponseEntity.ok(java.util.Map.of("message", "Notification marked as read"));
+    }
 }
