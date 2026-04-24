@@ -11,6 +11,6 @@ export const getHostIp = () => {
     return hostUri.split(':')[0];
   }
   
-  // Fallback if not found (e.g. in production)
-  return 'localhost';
+  // Fallback to Production VPS IP
+  return '51.254.134.173';
 };
