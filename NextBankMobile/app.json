@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F5A623"
+      "backgroundColor": "#1E3A8A"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F5A623"
+        "backgroundColor": "#1E3A8A"
       },
       "package": "cm.nextbank.app",
       "permissions": [
@@ -37,6 +37,14 @@
         "expo-secure-store",
         {
           "faceIDPermission": "Allow NextBank to use Face ID for secure login."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ],
